@@ -30,5 +30,6 @@ deploy:
     all_branches: true
 before_install:
 - gem install fir-cli
+- gem install rails
 after_deploy:
 - fir p app/build/outputs/apk/XposedInstaller_by_dvdandroid-release-unsigned.apk -T ${FIR_TOKEN}
