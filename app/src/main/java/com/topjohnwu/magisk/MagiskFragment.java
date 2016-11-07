@@ -4,7 +4,7 @@ import android.app.Fragment;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
@@ -87,7 +87,7 @@ public class MagiskFragment extends Fragment {
                             Shell.su("setprop magisk.version " + String.valueOf(remoteMagiskVersion));
                             super.done();
                         }
-                    }.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+                    }.exec();
                 }
             },
             magiskLink,
@@ -98,11 +98,18 @@ public class MagiskFragment extends Fragment {
             new DownloadReceiver() {
                 @Override
                 public void task(Uri uri) {
-                    Intent install = new Intent(Intent.ACTION_INSTALL_PACKAGE);
-                    install.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    Uri content = FileProvider.getUriForFile(getActivity(), "com.topjohnwu.magisk.provider", new File(uri.getPath()));
-                    install.setData(content);
-                    mContext.startActivity(install);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        Intent install = new Intent(Intent.ACTION_INSTALL_PACKAGE);
+                        install.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        Uri content = FileProvider.getUriForFile(getActivity(), "com.topjohnwu.magisk.provider", new File(uri.getPath()));
+                        install.setData(content);
+                        mContext.startActivity(install);
+                    } else {
+                        Intent install = new Intent(Intent.ACTION_VIEW);
+                        install.setDataAndType(uri, "application/vnd.android.package-archive");
+                        install.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        mContext.startActivity(install);
+                    }
                 }
             },
             appLink,
@@ -133,7 +140,7 @@ public class MagiskFragment extends Fragment {
             appCheckUpdatesProgress.setVisibility(View.VISIBLE);
             magiskCheckUpdatesProgress.setVisibility(View.VISIBLE);
 
-            new Async.CheckUpdates(prefs).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            new Async.CheckUpdates(prefs).exec();
         });
 
         if (prefs.getBoolean("update_check_done", false)) {
@@ -167,10 +174,10 @@ public class MagiskFragment extends Fragment {
 
     private void updateMagiskVersion() {
         List<String> ret = Shell.sh("getprop magisk.version");
-        if (ret.get(0).isEmpty()) {
-            magiskVersion = -1;
-        } else {
+        try {
             magiskVersion = Integer.parseInt(ret.get(0));
+        } catch (NumberFormatException e) {
+            magiskVersion = -1;
         }
 
         if (magiskVersion == -1) {

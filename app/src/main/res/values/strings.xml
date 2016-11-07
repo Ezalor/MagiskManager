@@ -6,6 +6,7 @@
     <!--Welcome Activity-->
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="magiskhide">MagiskHide</string>
     <string name="modules">Modules</string>
     <string name="downloads">Downloads</string>
     <string name="log">Log</string>
@@ -53,7 +54,7 @@
     <string name="app_developers">Main developers</string>
     <string name="app_developers_"><![CDATA[App created by <a href="https://github.com/topjohnwu">topjohnwu</a> in collaboration with <a href="https://github.com/d8ahazard">Digitalhigh</a> and <a href="https://github.com/dvdandroid">Dvdandroid</a>.]]></string>
     <string name="app_changelog">App\'s changelog</string>
-    <string name="translators" />
+    <string name="translators"/>
     <string name="app_version">App\'s version</string>
     <string name="app_source_code">Source code</string>
     <string name="donation">Donation</string>
