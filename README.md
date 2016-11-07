@@ -1,4 +1,7 @@
 # Magisk Manager
+
+[![Build Status](https://travis-ci.org/Ezalor/MagiskManager.svg?branch=master)](https://travis-ci.org/Ezalor/MagiskManager)
+
 The project can only be compiled on Android Studio Version 2.2.0+  
 I use Java 8 features, which requires Jack compiler and that's only available 2.2.0+
 
