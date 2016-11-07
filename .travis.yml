@@ -6,6 +6,7 @@ android:
   - platform-tools
   - build-tools-24.0.2
   - android-25
+  - extra-android-support
 script:
 - "./gradlew build"
 after_script:
