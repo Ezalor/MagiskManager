@@ -1,4 +1,4 @@
-package com.topjohnwu.magisk;
+package com.topjohnwu.magisk.adapters;
 
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
@@ -19,6 +19,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.topjohnwu.magisk.R;
 import com.topjohnwu.magisk.module.Repo;
 import com.topjohnwu.magisk.receivers.DownloadReceiver;
 import com.topjohnwu.magisk.utils.Async;
@@ -75,11 +76,7 @@ public class ReposAdapter extends RecyclerView.Adapter<ReposAdapter.ViewHolder> 
         } else {
             repo = mUpdateRepos.get(position);
         }
-        if (repo.isCache()) {
-            holder.title.setText("[Cache] " + repo.getName());
-        } else {
-            holder.title.setText(repo.getName());
-        }
+        holder.title.setText(repo.getName());
         String author = repo.getAuthor();
         String versionName = repo.getVersion();
         String description = repo.getDescription();

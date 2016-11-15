@@ -2,15 +2,13 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <group
-        android:id="@+id/main_items"
-        android:checkableBehavior="single">
+        android:checkableBehavior="single"
+        android:id="@+id/main_group">
 
         <item
             android:id="@+id/magisk"
             android:icon="@drawable/magisk"
             android:title="@string/magisk"/>
-
-
 
         <item
             android:id="@+id/modules"
@@ -33,8 +31,8 @@
     </group>
 
     <group
-        android:id="@+id/option_items"
-        android:checkableBehavior="none">
+        android:checkableBehavior="none"
+        android:id="@+id/second_group">
 
         <item
             android:id="@+id/settings"

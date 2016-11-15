@@ -1,7 +1,6 @@
-package com.topjohnwu.magisk;
+package com.topjohnwu.magisk.adapters;
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
@@ -13,7 +12,9 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.topjohnwu.magisk.R;
 import com.topjohnwu.magisk.module.Module;
+import com.topjohnwu.magisk.utils.Async;
 import com.topjohnwu.magisk.utils.Shell;
 
 import java.util.List;
@@ -42,11 +43,7 @@ public class ModulesAdapter extends RecyclerView.Adapter<ModulesAdapter.ViewHold
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
         final Module module = mList.get(position);
-        if (module.isCache()) {
-            holder.title.setText("[Cache] " + module.getName());
-        } else {
-            holder.title.setText(module.getName());
-        }
+        holder.title.setText(module.getName());
         String author = module.getAuthor();
         String versionName = module.getVersion();
         String description = module.getDescription();
@@ -61,9 +58,10 @@ public class ModulesAdapter extends RecyclerView.Adapter<ModulesAdapter.ViewHold
         }
 
         holder.checkBox.setChecked(module.isEnabled());
-        holder.checkBox.setOnCheckedChangeListener((compoundButton, isChecked) -> {
-            if (isChecked) {
-                new AsyncTask<Void, Void, Void>() {
+        holder.checkBox.setOnClickListener((v) -> {
+            CheckBox checkBox = (CheckBox) v;
+            if (checkBox.isChecked()) {
+                new Async.RootTask<Void, Void, Void>() {
                     @Override
                     protected Void doInBackground(Void... voids) {
                         module.removeDisableFile();
@@ -74,9 +72,9 @@ public class ModulesAdapter extends RecyclerView.Adapter<ModulesAdapter.ViewHold
                     protected void onPostExecute(Void v) {
                         Snackbar.make(mView, R.string.disable_file_removed, Snackbar.LENGTH_SHORT).show();
                     }
-                }.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+                }.exec();
             } else {
-                new AsyncTask<Void, Void, Void>() {
+                new Async.RootTask<Void, Void, Void>() {
                     @Override
                     protected Void doInBackground(Void... voids) {
                         module.createDisableFile();
@@ -87,13 +85,13 @@ public class ModulesAdapter extends RecyclerView.Adapter<ModulesAdapter.ViewHold
                     protected void onPostExecute(Void v) {
                         Snackbar.make(mView, R.string.disable_file_created, Snackbar.LENGTH_SHORT).show();
                     }
-                }.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+                }.exec();
             }
         });
 
         holder.delete.setOnClickListener(v -> {
             if (module.willBeRemoved()) {
-                new AsyncTask<Void, Void, Void>() {
+                new Async.RootTask<Void, Void, Void>() {
                     @Override
                     protected Void doInBackground(Void... voids) {
                         module.deleteRemoveFile();
@@ -105,9 +103,9 @@ public class ModulesAdapter extends RecyclerView.Adapter<ModulesAdapter.ViewHold
                         Snackbar.make(mView, R.string.remove_file_deleted, Snackbar.LENGTH_SHORT).show();
                         updateDeleteButton(holder, module);
                     }
-                }.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+                }.exec();
             } else {
-                new AsyncTask<Void, Void, Void>() {
+                new Async.RootTask<Void, Void, Void>() {
                     @Override
                     protected Void doInBackground(Void... voids) {
                         module.createRemoveFile();
@@ -119,7 +117,7 @@ public class ModulesAdapter extends RecyclerView.Adapter<ModulesAdapter.ViewHold
                         Snackbar.make(mView, R.string.remove_file_created, Snackbar.LENGTH_SHORT).show();
                         updateDeleteButton(holder, module);
                     }
-                }.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+                }.exec();
             }
         });
 

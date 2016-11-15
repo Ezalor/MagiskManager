@@ -48,11 +48,11 @@ public class Async {
     public static final String UPDATE_JSON = "https://raw.githubusercontent.com/topjohnwu/MagiskManager/updates/magisk_update.json";
     public static final String MAGISK_HIDE_PATH = "/magisk/.core/magiskhide/";
 
-    public static class constructEnv extends NormalTask<Void, Void, Void> {
+    public static class ConstructEnv extends NormalTask<Void, Void, Void> {
 
         ApplicationInfo mInfo;
 
-        public constructEnv(ApplicationInfo info) {
+        public ConstructEnv(ApplicationInfo info) {
             mInfo = info;
         }
 
@@ -107,7 +107,7 @@ public class Async {
                 JSONObject magisk = json.getJSONObject("magisk");
                 JSONObject app = json.getJSONObject("app");
 
-                MagiskFragment.remoteMagiskVersion = magisk.getInt("versionCode");
+                MagiskFragment.remoteMagiskVersion = magisk.getDouble("versionCode");
                 MagiskFragment.magiskLink = magisk.getString("link");
                 MagiskFragment.magiskChangelog = magisk.getString("changelog");
 
@@ -347,28 +347,6 @@ public class Async {
                     .setPositiveButton(R.string.reboot, (dialogInterface1, i) -> Shell.sh("su -c reboot"))
                     .setNegativeButton(R.string.no_thanks, null)
                     .show();
-        }
-    }
-
-    public static class LinkBusyBox extends AsyncTask<Void, Void, Void> {
-
-        private boolean link;
-
-        public LinkBusyBox(boolean b) {
-            link = b;
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            if (link) {
-                Shell.su(
-                        "rm -rf /magisk/.core/busybox",
-                        "ln -s /data/busybox /magisk/.core/busybox"
-                );
-            } else {
-                Shell.su("rm -rf /magisk/.core/busybox");
-            }
-            return null;
         }
     }
 

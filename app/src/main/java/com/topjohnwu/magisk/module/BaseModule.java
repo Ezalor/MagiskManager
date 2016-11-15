@@ -1,17 +1,21 @@
 package com.topjohnwu.magisk.module;
 
 
+import android.support.annotation.NonNull;
+
+import com.topjohnwu.magisk.utils.Logger;
+
 import java.util.List;
 
-public abstract class BaseModule {
+public abstract class BaseModule implements Comparable<BaseModule> {
 
     protected String mId, mName, mVersion, mAuthor, mDescription, mSupportUrl, mDonateUrl;
     protected boolean mIsCacheModule = false;
     protected int mVersionCode = 0;
 
-    protected void parseProps(List<String> props) { parseProps(props.toArray(new String[props.size()])); }
+    protected void parseProps(List<String> props) throws CacheModException { parseProps(props.toArray(new String[props.size()])); }
 
-    protected void parseProps(String[] props) {
+    protected void parseProps(String[] props) throws CacheModException {
         for (String line : props) {
             String[] prop = line.split("=", 2);
             if (prop.length != 2) {
@@ -34,7 +38,9 @@ public abstract class BaseModule {
                     this.mVersion = prop[1];
                     break;
                 case "versionCode":
-                    this.mVersionCode = Integer.parseInt(prop[1]);
+                    try {
+                        this.mVersionCode = Integer.parseInt(prop[1]);
+                    } catch (NumberFormatException ignored) {}
                     break;
                 case "author":
                     this.mAuthor = prop[1];
@@ -55,6 +61,8 @@ public abstract class BaseModule {
                     break;
             }
         }
+        if (mIsCacheModule)
+            throw new CacheModException(mId);
     }
 
     public String getName() {
@@ -75,14 +83,6 @@ public abstract class BaseModule {
         return mDescription;
     }
 
-    public boolean isCache() {
-        return mIsCacheModule;
-    }
-
-    public void setCache() {
-        mIsCacheModule = true;
-    }
-
     public int getVersionCode() {
         return mVersionCode;
     }
@@ -93,5 +93,16 @@ public abstract class BaseModule {
 
     public String getSupportUrl() {
         return mSupportUrl;
+    }
+
+    public static class CacheModException extends Exception {
+        public CacheModException(String id) {
+            Logger.dev("Cache mods are no longer supported! id: " + id);
+        }
+    }
+
+    @Override
+    public int compareTo(@NonNull BaseModule o) {
+        return this.getName().toLowerCase().compareTo(o.getName().toLowerCase());
     }
 }
