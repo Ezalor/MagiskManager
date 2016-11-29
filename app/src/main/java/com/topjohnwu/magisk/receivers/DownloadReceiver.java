@@ -12,14 +12,10 @@ import com.topjohnwu.magisk.R;
 
 public abstract class DownloadReceiver extends BroadcastReceiver {
     public Context mContext;
-    public String mName;
+    public String mFilename;
     long downloadID;
 
     public DownloadReceiver() {}
-
-    public DownloadReceiver(String name) {
-        mName = name;
-    }
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -44,6 +40,7 @@ public abstract class DownloadReceiver extends BroadcastReceiver {
                 }
                 context.unregisterReceiver(this);
             }
+            c.close();
         }
     }
 
@@ -51,5 +48,9 @@ public abstract class DownloadReceiver extends BroadcastReceiver {
         downloadID = id;
     }
 
-    public void task(Uri uri) {}
+    public void setFilename(String filename) {
+        mFilename = filename;
+    }
+
+    public abstract void task(Uri uri);
 }

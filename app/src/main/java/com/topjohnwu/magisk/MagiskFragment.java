@@ -23,6 +23,7 @@ import com.topjohnwu.magisk.utils.Async;
 import com.topjohnwu.magisk.utils.Logger;
 import com.topjohnwu.magisk.utils.Shell;
 import com.topjohnwu.magisk.utils.Utils;
+import com.topjohnwu.magisk.utils.ZipUtils;
 
 import java.io.File;
 import java.util.List;
@@ -71,16 +72,26 @@ public class MagiskFragment extends Fragment {
     private SharedPreferences prefs;
     private SharedPreferences.OnSharedPreferenceChangeListener listener;
 
-    private AlertDialog.OnClickListener flashMagisk = (dialogInterface, i) -> Utils.downloadAndReceive(
+    private AlertDialog.OnClickListener flashMagisk = (dialogInterface, i) -> Utils.dlAndReceive(
             getActivity(),
-            new DownloadReceiver("Magisk-v" + String.valueOf(remoteMagiskVersion)) {
+            new DownloadReceiver() {
                 @Override
                 public void task(Uri uri) {
-                    new Async.FlashZIP(mContext, uri, mName) {
+                    new Async.FlashZIP(mContext, uri, mFilename) {
                         @Override
-                        protected void preProcessing() throws Throwable {
-                            super.preProcessing();
-                            new File(mUri.getPath()).delete();
+                        protected boolean unzipAndCheck() {
+                            publishProgress(mContext.getString(R.string.zip_install_unzip_zip_msg));
+                            if (Shell.rootAccess()) {
+                                // We might not have busybox yet, unzip with Java
+                                // We will have complete busybox after Magisk installation
+                                ZipUtils.unzip(mCachedFile, new File(mCachedFile.getParent(), "magisk"));
+                                Shell.su(
+                                        "mkdir -p " + Async.TMP_FOLDER_PATH + "/magisk",
+                                        "cp -af " + mCachedFile.getParent() + "/magisk/. " + Async.TMP_FOLDER_PATH + "/magisk"
+                                );
+                            }
+                            super.unzipAndCheck();
+                            return true;
                         }
 
                         @Override
@@ -92,9 +103,9 @@ public class MagiskFragment extends Fragment {
                 }
             },
             magiskLink,
-            "latest_magisk.zip");
+            "Magisk-v" + String.valueOf(remoteMagiskVersion) + ".zip");
 
-    private AlertDialog.OnClickListener installMagiskApk = (dialogInterface, i) -> Utils.downloadAndReceive(
+    private AlertDialog.OnClickListener installMagiskApk = (dialogInterface, i) -> Utils.dlAndReceive(
             getActivity(),
             new DownloadReceiver() {
                 @Override
@@ -116,13 +127,15 @@ public class MagiskFragment extends Fragment {
             appLink,
             "MagiskManager-v" + remoteAppVersion + ".apk");
 
+    static {
+        updateMagiskVersion();
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.magisk_fragment, container, false);
         ButterKnife.bind(this, v);
-
-        updateMagiskVersion();
 
         prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
 
@@ -173,7 +186,7 @@ public class MagiskFragment extends Fragment {
         prefs.unregisterOnSharedPreferenceChangeListener(listener);
     }
 
-    private void updateMagiskVersion() {
+    private static void updateMagiskVersion() {
         List<String> ret = Shell.sh("getprop magisk.version");
         if (ret.get(0).length() == 0) {
             magiskVersion = -1;
@@ -183,6 +196,16 @@ public class MagiskFragment extends Fragment {
         } catch (NumberFormatException e) {
             // Custom version don't need to receive updates
             magiskVersion = Double.POSITIVE_INFINITY;
+        }
+    }
+
+
+    private void updateUI() {
+        String theme = prefs.getString("theme", "");
+        if (theme.equals("Dark")) {
+            builder = new AlertDialog.Builder(getActivity(), R.style.AlertDialog_dh);
+        } else {
+            builder = new AlertDialog.Builder(getActivity());
         }
 
         if (magiskVersion == -1) {
@@ -197,16 +220,6 @@ public class MagiskFragment extends Fragment {
 
             magiskVersionText.setText(getString(R.string.magisk_version, magiskVersionString));
             magiskVersionText.setTextColor(colorOK);
-        }
-    }
-
-
-    private void updateUI() {
-        String theme = prefs.getString("theme", "");
-        if (theme.equals("Dark")) {
-            builder = new AlertDialog.Builder(getActivity(), R.style.AlertDialog_dh);
-        } else {
-            builder = new AlertDialog.Builder(getActivity());
         }
 
         if (remoteMagiskVersion == -1) {

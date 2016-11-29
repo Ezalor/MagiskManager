@@ -14,6 +14,8 @@ import android.widget.Toast;
 import com.topjohnwu.magisk.R;
 import com.topjohnwu.magisk.receivers.DownloadReceiver;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
@@ -87,7 +89,7 @@ public class Utils {
         return ret;
     }
 
-    public static void downloadAndReceive(Context context, DownloadReceiver receiver, String link, String filename) {
+    public static void dlAndReceive(Context context, DownloadReceiver receiver, String link, String filename) {
         File file = new File(Environment.getExternalStorageDirectory() + "/MagiskManager/" + filename);
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             Toast.makeText(context, R.string.permissionNotGranted, Toast.LENGTH_LONG).show();
@@ -103,6 +105,7 @@ public class Utils {
         request.setDestinationUri(Uri.fromFile(file));
 
         receiver.setDownloadID(downloadManager.enqueue(request));
+        receiver.setFilename(filename);
         context.registerReceiver(receiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
     }
 
@@ -127,6 +130,25 @@ public class Utils {
             e.printStackTrace();
         }
         return secret;
+    }
+
+    public static String getLegalFilename(CharSequence filename) {
+        return filename.toString().replace(" ", "_").replace("'", "").replace("\"", "")
+                .replace("$", "").replace("`", "").replace("(", "").replace(")", "")
+                .replace("#", "").replace("@", "").replace("*", "");
+    }
+
+    public static class ByteArrayInOutStream extends ByteArrayOutputStream {
+        public ByteArrayInputStream getInputStream() {
+            ByteArrayInputStream in = new ByteArrayInputStream(buf, 0, count);
+            count = 0;
+            buf = new byte[32];
+            return in;
+        }
+        public void setBuffer(byte[] buffer) {
+            buf = buffer;
+            count = buffer.length;
+        }
     }
 
 }

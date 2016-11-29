@@ -21,13 +21,10 @@ import android.widget.TextView;
 
 import com.topjohnwu.magisk.R;
 import com.topjohnwu.magisk.module.Repo;
-import com.topjohnwu.magisk.receivers.DownloadReceiver;
-import com.topjohnwu.magisk.utils.Async;
-import com.topjohnwu.magisk.utils.Shell;
+import com.topjohnwu.magisk.receivers.RepoDlReceiver;
 import com.topjohnwu.magisk.utils.Utils;
 import com.topjohnwu.magisk.utils.WebWindow;
 
-import java.io.File;
 import java.util.List;
 
 import butterknife.BindView;
@@ -54,7 +51,7 @@ public class ReposAdapter extends RecyclerView.Adapter<ReposAdapter.ViewHolder> 
 
         String theme = PreferenceManager.getDefaultSharedPreferences(context).getString("theme", "");
         if (theme.equals("Dark")) {
-            builder = new AlertDialog.Builder(context,R.style.AlertDialog_dh);
+            builder = new AlertDialog.Builder(context, R.style.AlertDialog_dh);
         } else {
             builder = new AlertDialog.Builder(context);
         }
@@ -92,41 +89,16 @@ public class ReposAdapter extends RecyclerView.Adapter<ReposAdapter.ViewHolder> 
 
         View.OnClickListener listener = view -> {
             if (view.getId() == holder.updateImage.getId()) {
-                String fullname = repo.getName() + "-" + repo.getVersion();
+                String filename = repo.getName() + "-" + repo.getVersion() + ".zip";
                 builder
                         .setTitle(context.getString(R.string.repo_install_title, repo.getName()))
-                        .setMessage(context.getString(R.string.repo_install_msg, fullname))
+                        .setMessage(context.getString(R.string.repo_install_msg, filename))
                         .setCancelable(true)
-                        .setPositiveButton(R.string.download_install, (dialogInterface, i) -> Utils.downloadAndReceive(
+                        .setPositiveButton(R.string.download_install, (dialogInterface, i) -> Utils.dlAndReceive(
                                 context,
-                                new DownloadReceiver(fullname) {
-                                    @Override
-                                    public void task(Uri uri) {
-                                        new Async.FlashZIP(context, uri, mName) {
-                                            @Override
-                                            protected void preProcessing() throws Throwable {
-                                                super.preProcessing();
-                                                new File(mUri.getPath()).delete();
-                                                Shell.sh(
-                                                        "PATH=" + context.getApplicationInfo().dataDir + "/tools:$PATH",
-                                                        "cd " + mFile.getParent(),
-                                                        "mkdir git",
-                                                        "unzip -o install.zip -d git",
-                                                        "mv git/* install",
-                                                        "cd install",
-                                                        "rm -rf system/placeholder",
-                                                        "chmod 644 $(find . -type f)",
-                                                        "chmod 755 $(find . -type d)",
-                                                        "rm -rf ../install.zip ../git",
-                                                        "zip -r ../install.zip *",
-                                                        "rm -rf ../install"
-                                                );
-                                            }
-                                        }.exec();
-                                    }
-                                },
+                                new RepoDlReceiver(),
                                 repo.getZipUrl(),
-                                repo.getId().replace(" ", "") + ".zip"))
+                                Utils.getLegalFilename(filename)))
                         .setNegativeButton(R.string.no_thanks, null)
                         .show();
             }
