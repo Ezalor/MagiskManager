@@ -12,8 +12,12 @@ import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.topjohnwu.magisk.MagiskFragment;
+import com.topjohnwu.magisk.InstallFragment;
+import com.topjohnwu.magisk.MainActivity;
+import com.topjohnwu.magisk.ModulesFragment;
 import com.topjohnwu.magisk.R;
+import com.topjohnwu.magisk.ReposFragment;
+import com.topjohnwu.magisk.StatusFragment;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -48,12 +52,6 @@ public class Async {
 
     public static class CheckUpdates extends NormalTask<Void, Void, Void> {
 
-        private SharedPreferences mPrefs;
-
-        public CheckUpdates(SharedPreferences prefs) {
-            mPrefs = prefs;
-        }
-
         @Override
         protected Void doInBackground(Void... voids) {
             String jsonStr = WebRequest.makeWebServiceCall(UPDATE_JSON, WebRequest.GET);
@@ -61,36 +59,31 @@ public class Async {
                 JSONObject json = new JSONObject(jsonStr);
 
                 JSONObject magisk = json.getJSONObject("magisk");
-                JSONObject app = json.getJSONObject("app");
 
-                MagiskFragment.remoteMagiskVersion = magisk.getDouble("versionCode");
-                MagiskFragment.magiskLink = magisk.getString("link");
-                MagiskFragment.magiskChangelog = magisk.getString("changelog");
-
-                MagiskFragment.remoteAppVersion = app.getString("version");
-                MagiskFragment.remoteAppVersionCode = app.getInt("versionCode");
-                MagiskFragment.appLink = app.getString("link");
-                MagiskFragment.appChangelog = app.getString("changelog");
-
-            } catch (JSONException ignored) {
-                Logger.dev("JSON error!");
-            }
+                StatusFragment.remoteMagiskVersion = magisk.getDouble("versionCode");
+                StatusFragment.magiskLink = magisk.getString("link");
+                StatusFragment.magiskChangelog = magisk.getString("changelog");
+            } catch (JSONException ignored) {}
             return null;
         }
 
         @Override
         protected void onPostExecute(Void v) {
-            mPrefs.edit().putBoolean("update_check_done", true).apply();
+            StatusFragment.updateCheckDone.trigger();
         }
     }
 
+    public static void checkSafetyNet(Context context) {
+        new SafetyNetHelper(context) {
+            @Override
+            public void handleResults(int i) {
+                StatusFragment.SNCheckResult = i;
+                StatusFragment.safetyNetDone.trigger();
+            }
+        }.requestTest();
+    }
+
     public static class LoadModules extends RootTask<Void, Void, Void> {
-
-        private SharedPreferences mPrefs;
-
-        public LoadModules(SharedPreferences prefs) {
-            mPrefs = prefs;
-        }
 
         @Override
         protected Void doInBackground(Void... voids) {
@@ -100,7 +93,7 @@ public class Async {
 
         @Override
         protected void onPostExecute(Void v) {
-            mPrefs.edit().putBoolean("module_done", true).apply();
+            ModulesFragment.moduleLoadDone.trigger();
         }
     }
 
@@ -120,8 +113,7 @@ public class Async {
 
         @Override
         protected void onPostExecute(Void v) {
-            PreferenceManager.getDefaultSharedPreferences(mContext).edit()
-                    .putBoolean("repo_done", true).apply();
+            ReposFragment.repoLoadDone.trigger();
         }
     }
 
@@ -162,6 +154,7 @@ public class Async {
         protected void preProcessing() throws Throwable {}
 
         protected void copyToCache() throws Throwable {
+            publishProgress(mContext.getString(R.string.copying_msg));
             try {
                 InputStream in = mContext.getContentResolver().openInputStream(mUri);
                 mCachedFile = new File(mContext.getCacheDir().getAbsolutePath() + "/install.zip");
@@ -237,7 +230,7 @@ public class Async {
                 }
                 return -1;
             }
-            if (ret != null && Boolean.parseBoolean(ret.get(ret.size() - 1))) {
+            if (Boolean.parseBoolean(ret.get(ret.size() - 1))) {
                 return 1;
             }
             return -1;
@@ -258,24 +251,16 @@ public class Async {
                     Toast.makeText(mContext, mContext.getString(R.string.invalid_zip), Toast.LENGTH_LONG).show();
                     break;
                 case 1:
-                    done();
+                    onSuccess();
                     break;
             }
         }
 
-        protected void done() {
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
-            prefs.edit().putBoolean("module_done", false).putBoolean("update_check_done", true).apply();
-            new LoadModules(prefs).exec();
+        protected void onSuccess() {
+            StatusFragment.updateCheckDone.trigger();
+            new LoadModules().exec();
 
-            AlertDialog.Builder builder;
-            String theme = prefs.getString("theme", "");
-            if (theme.equals("Dark")) {
-                builder = new AlertDialog.Builder(mContext, R.style.AlertDialog_dh);
-            } else {
-                builder = new AlertDialog.Builder(mContext);
-            }
-            builder
+            MainActivity.alertBuilder
                     .setTitle(R.string.reboot_title)
                     .setMessage(R.string.reboot_msg)
                     .setPositiveButton(R.string.reboot, (dialogInterface1, i) -> Shell.sh("su -c reboot"))
@@ -301,5 +286,23 @@ public class Async {
             exec(false, packageName);
         }
 
+    }
+
+    public static class GetBootBlocks extends RootTask<Void, Void, Void> {
+        @Override
+        protected Void doInBackground(Void... params) {
+            if (Shell.rootAccess()) {
+                InstallFragment.blockList = Shell.su("ls /dev/block | grep mmc");
+                if (InstallFragment.bootBlock == null) {
+                    InstallFragment.bootBlock = Utils.detectBootImage();
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            InstallFragment.blockDetectionDone.trigger();
+        }
     }
 }
