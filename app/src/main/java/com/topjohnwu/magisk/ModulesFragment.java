@@ -3,10 +3,8 @@ package com.topjohnwu.magisk;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.RecyclerView;
@@ -58,6 +56,18 @@ public class ModulesFragment extends Fragment implements CallbackHandler.EventLi
         mSwipeRefreshLayout.setOnRefreshListener(() -> {
             recyclerView.setVisibility(View.GONE);
             new Async.LoadModules().exec();
+        });
+
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                mSwipeRefreshLayout.setEnabled(recyclerView.getChildAt(0).getTop() >= 0);
+            }
+
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+            }
         });
 
         if (moduleLoadDone.isTriggered) {
