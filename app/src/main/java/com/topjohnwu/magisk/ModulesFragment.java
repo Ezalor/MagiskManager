@@ -1,11 +1,11 @@
 package com.topjohnwu.magisk;
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -16,36 +16,35 @@ import android.widget.TextView;
 import com.github.clans.fab.FloatingActionButton;
 import com.topjohnwu.magisk.adapters.ModulesAdapter;
 import com.topjohnwu.magisk.module.Module;
+import com.topjohnwu.magisk.module.ModuleHelper;
 import com.topjohnwu.magisk.utils.Async;
 import com.topjohnwu.magisk.utils.CallbackHandler;
 import com.topjohnwu.magisk.utils.Logger;
-import com.topjohnwu.magisk.utils.ModuleHelper;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 public class ModulesFragment extends Fragment implements CallbackHandler.EventListener {
 
-    public static final CallbackHandler.Event moduleLoadDone = new CallbackHandler.Event();
-
     private static final int FETCH_ZIP_CODE = 2;
 
+    private Unbinder unbinder;
     @BindView(R.id.swipeRefreshLayout) SwipeRefreshLayout mSwipeRefreshLayout;
     @BindView(R.id.recyclerView) RecyclerView recyclerView;
-    @BindView(R.id.empty_rv) TextView emptyTv;
+    @BindView(R.id.empty_rv) TextView emptyRv;
     @BindView(R.id.fab) FloatingActionButton fabio;
 
     private List<Module> listModules = new ArrayList<>();
-    private View mView;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        mView = inflater.inflate(R.layout.modules_fragment, container, false);
-        ButterKnife.bind(this, mView);
+        View view = inflater.inflate(R.layout.fragment_modules, container, false);
+        unbinder = ButterKnife.bind(this, view);
 
         fabio.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -70,11 +69,11 @@ public class ModulesFragment extends Fragment implements CallbackHandler.EventLi
             }
         });
 
-        if (moduleLoadDone.isTriggered) {
+        if (Global.Events.moduleLoadDone.isTriggered) {
             updateUI();
         }
 
-        return mView;
+        return view;
     }
 
     @Override
@@ -94,26 +93,31 @@ public class ModulesFragment extends Fragment implements CallbackHandler.EventLi
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        mView = this.getView();
-        CallbackHandler.register(moduleLoadDone, this);
+    public void onStart() {
+        super.onStart();
+        CallbackHandler.register(Global.Events.moduleLoadDone, this);
         getActivity().setTitle(R.string.modules);
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        CallbackHandler.unRegister(moduleLoadDone, this);
+    public void onStop() {
+        CallbackHandler.unRegister(Global.Events.moduleLoadDone, this);
+        super.onStop();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        unbinder.unbind();
     }
 
     private void updateUI() {
         ModuleHelper.getModuleList(listModules);
         if (listModules.size() == 0) {
-            emptyTv.setVisibility(View.VISIBLE);
+            emptyRv.setVisibility(View.VISIBLE);
             recyclerView.setVisibility(View.GONE);
         } else {
-            emptyTv.setVisibility(View.GONE);
+            emptyRv.setVisibility(View.GONE);
             recyclerView.setVisibility(View.VISIBLE);
             recyclerView.setAdapter(new ModulesAdapter(listModules));
         }

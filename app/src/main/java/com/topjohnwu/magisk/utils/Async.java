@@ -2,19 +2,18 @@ package com.topjohnwu.magisk.utils;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.provider.OpenableColumns;
-import android.util.Log;
 import android.widget.Toast;
 
-import com.topjohnwu.magisk.InstallFragment;
-import com.topjohnwu.magisk.MainActivity;
-import com.topjohnwu.magisk.ModulesFragment;
+import com.topjohnwu.magisk.Global;
 import com.topjohnwu.magisk.R;
-import com.topjohnwu.magisk.ReposFragment;
-import com.topjohnwu.magisk.StatusFragment;
+import com.topjohnwu.magisk.adapters.ApplicationAdapter;
+import com.topjohnwu.magisk.module.ModuleHelper;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -25,6 +24,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 public class Async {
@@ -32,6 +33,7 @@ public class Async {
     public abstract static class RootTask<Params, Progress, Result> extends AsyncTask<Params, Progress, Result> {
         @SafeVarargs
         public final void exec(Params... params) {
+            if (!Shell.rootAccess()) return;
             executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, params);
         }
     }
@@ -51,22 +53,20 @@ public class Async {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            String jsonStr = WebRequest.makeWebServiceCall(UPDATE_JSON, WebRequest.GET);
+            String jsonStr = WebService.request(UPDATE_JSON, WebService.GET);
             try {
                 JSONObject json = new JSONObject(jsonStr);
-
                 JSONObject magisk = json.getJSONObject("magisk");
-
-                StatusFragment.remoteMagiskVersion = magisk.getDouble("versionCode");
-                StatusFragment.magiskLink = magisk.getString("link");
-                StatusFragment.magiskChangelog = magisk.getString("changelog");
+                Global.Info.remoteMagiskVersion = magisk.getDouble("versionCode");
+                Global.Info.magiskLink = magisk.getString("link");
+                Global.Info.releaseNoteLink = magisk.getString("note");
             } catch (JSONException ignored) {}
             return null;
         }
 
         @Override
         protected void onPostExecute(Void v) {
-            StatusFragment.updateCheckDone.trigger();
+            Global.Events.updateCheckDone.trigger();
         }
     }
 
@@ -74,8 +74,8 @@ public class Async {
         new SafetyNetHelper(context) {
             @Override
             public void handleResults(int i) {
-                StatusFragment.SNCheckResult = i;
-                StatusFragment.safetyNetDone.trigger();
+                Global.Info.SNCheckResult = i;
+                Global.Events.safetyNetDone.trigger();
             }
         }.requestTest();
     }
@@ -90,7 +90,7 @@ public class Async {
 
         @Override
         protected void onPostExecute(Void v) {
-            ModulesFragment.moduleLoadDone.trigger();
+            Global.Events.moduleLoadDone.trigger();
         }
     }
 
@@ -110,7 +110,35 @@ public class Async {
 
         @Override
         protected void onPostExecute(Void v) {
-            ReposFragment.repoLoadDone.trigger();
+            Global.Events.repoLoadDone.trigger();
+        }
+    }
+
+    public static class LoadApps extends RootTask<Void, Void, Void> {
+
+        private PackageManager pm;
+
+        public LoadApps(PackageManager packageManager) {
+           pm = packageManager;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            Global.Data.appList = pm.getInstalledApplications(0);
+            for (Iterator<ApplicationInfo> i = Global.Data.appList.iterator(); i.hasNext(); ) {
+                ApplicationInfo info = i.next();
+                if (ApplicationAdapter.BLACKLIST.contains(info.packageName) || !info.enabled)
+                    i.remove();
+            }
+            Collections.sort(Global.Data.appList, (a, b) -> a.loadLabel(pm).toString().toLowerCase()
+                    .compareTo(b.loadLabel(pm).toString().toLowerCase()));
+            Global.Data.magiskHideList = Shell.su(Async.MAGISK_HIDE_PATH + "list");
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void v) {
+            Global.Events.packageLoadDone.trigger();
         }
     }
 
@@ -152,34 +180,36 @@ public class Async {
 
         protected void copyToCache() throws Throwable {
             publishProgress(mContext.getString(R.string.copying_msg));
-            try {
-                InputStream in = mContext.getContentResolver().openInputStream(mUri);
-                mCachedFile = new File(mContext.getCacheDir().getAbsolutePath() + "/install.zip");
-                if (mCachedFile.exists() && !mCachedFile.delete()) {
-                    throw new IOException();
-                }
-                OutputStream outputStream = new FileOutputStream(mCachedFile);
+            mCachedFile = new File(mContext.getCacheDir().getAbsolutePath() + "/install.zip");
+            if (mCachedFile.exists() && !mCachedFile.delete()) {
+                Logger.error("FlashZip: Error while deleting already existing file");
+                throw new IOException();
+            }
+            try (
+                    InputStream in = mContext.getContentResolver().openInputStream(mUri);
+                    OutputStream outputStream = new FileOutputStream(mCachedFile)
+            ) {
                 byte buffer[] = new byte[1024];
                 int length;
+                if (in == null) throw new FileNotFoundException();
                 while ((length = in.read(buffer)) > 0) {
                     outputStream.write(buffer, 0, length);
                 }
-                outputStream.close();
                 Logger.dev("FlashZip: File created successfully - " + mCachedFile.getPath());
-                in.close();
             } catch (FileNotFoundException e) {
-                Log.e(Logger.TAG, "FlashZip: Invalid Uri");
+                Logger.error("FlashZip: Invalid Uri");
                 throw e;
             } catch (IOException e) {
-                Log.e(Logger.TAG, "FlashZip: Error in creating file");
+                Logger.error("FlashZip: Error in creating file");
                 throw e;
             }
         }
 
         protected boolean unzipAndCheck() {
             ZipUtils.unzip(mCachedFile, mCachedFile.getParentFile(), "META-INF/com/google/android");
-            return Utils.readFile(mCachedFile.getParent() + "/META-INF/com/google/android/updater-script")
-                    .get(0).contains("#MAGISK");
+            List<String> ret;
+            ret = Utils.readFile(mCachedFile.getParent() + "/META-INF/com/google/android/updater-script");
+            return Utils.isValidShellResponse(ret) && ret.get(0).contains("#MAGISK");
         }
 
         @Override
@@ -206,27 +236,21 @@ public class Async {
                 return -1;
             }
             if (!unzipAndCheck()) return 0;
-            if (Shell.rootAccess()) {
-                publishProgress(mContext.getString(R.string.zip_install_progress_msg, mFilename));
-                ret = Shell.su(
-                        "BOOTMODE=true sh " + mCachedFile.getParent() +
-                                "/META-INF/com/google/android/update-binary dummy 1 " + mCachedFile.getPath(),
-                        "if [ $? -eq 0 ]; then echo true; else echo false; fi"
-                );
-                Logger.dev("FlashZip: Console log:");
-                for (String line : ret) {
-                    Logger.dev(line);
-                }
-                Shell.su(
-                        "rm -rf " + mCachedFile.getParent() + "/*",
-                        "rm -rf " + TMP_FOLDER_PATH
-                );
-            } else {
-                if (mCachedFile != null && mCachedFile.exists() && !mCachedFile.delete()) {
-                    Utils.removeItem(mCachedFile.getPath());
-                }
-                return -1;
+            publishProgress(mContext.getString(R.string.zip_install_progress_msg, mFilename));
+            ret = Shell.su(
+                    "BOOTMODE=true sh " + mCachedFile.getParent() +
+                            "/META-INF/com/google/android/update-binary dummy 1 " + mCachedFile.getPath(),
+                    "if [ $? -eq 0 ]; then echo true; else echo false; fi"
+            );
+            if (!Utils.isValidShellResponse(ret)) return -1;
+            Logger.dev("FlashZip: Console log:");
+            for (String line : ret) {
+                Logger.dev(line);
             }
+            Shell.su(
+                    "rm -rf " + mCachedFile.getParent() + "/*",
+                    "rm -rf " + TMP_FOLDER_PATH
+            );
             if (Boolean.parseBoolean(ret.get(ret.size() - 1))) {
                 return 1;
             }
@@ -254,13 +278,13 @@ public class Async {
         }
 
         protected void onSuccess() {
-            StatusFragment.updateCheckDone.trigger();
+            Global.Events.updateCheckDone.trigger();
             new LoadModules().exec();
 
-            MainActivity.alertBuilder
+            Utils.getAlertDialogBuilder(mContext)
                     .setTitle(R.string.reboot_title)
                     .setMessage(R.string.reboot_msg)
-                    .setPositiveButton(R.string.reboot, (dialogInterface1, i) -> Shell.sh("su -c reboot"))
+                    .setPositiveButton(R.string.reboot, (dialogInterface, i) -> Shell.sh("su -c reboot"))
                     .setNegativeButton(R.string.no_thanks, null)
                     .show();
         }
@@ -289,17 +313,16 @@ public class Async {
         @Override
         protected Void doInBackground(Void... params) {
             if (Shell.rootAccess()) {
-                InstallFragment.blockList = Shell.su("ls /dev/block | grep mmc");
-                if (InstallFragment.bootBlock == null) {
-                    InstallFragment.bootBlock = Utils.detectBootImage();
-                }
+                Global.Data.blockList = Shell.su("ls /dev/block | grep mmc");
+                if (Global.Info.bootBlock == null)
+                    Global.Info.bootBlock = Utils.detectBootImage();
             }
             return null;
         }
 
         @Override
-        protected void onPostExecute(Void aVoid) {
-            InstallFragment.blockDetectionDone.trigger();
+        protected void onPostExecute(Void v) {
+            Global.Events.blockDetectionDone.trigger();
         }
     }
 }

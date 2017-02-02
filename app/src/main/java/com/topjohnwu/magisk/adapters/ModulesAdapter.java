@@ -3,11 +3,10 @@ package com.topjohnwu.magisk.adapters;
 import android.content.Context;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
-import android.util.DisplayMetrics;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -25,7 +24,6 @@ import butterknife.ButterKnife;
 public class ModulesAdapter extends RecyclerView.Adapter<ModulesAdapter.ViewHolder> {
 
     private final List<Module> mList;
-    private Context context;
 
     public ModulesAdapter(List<Module> list) {
         mList = list;
@@ -34,91 +32,64 @@ public class ModulesAdapter extends RecyclerView.Adapter<ModulesAdapter.ViewHold
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_item_module, parent, false);
-        context = parent.getContext();
-        ButterKnife.bind(this, view);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
+        Context context = holder.itemView.getContext();
         final Module module = mList.get(position);
-        holder.title.setText(module.getName());
+
+        String version = module.getVersion();
         String author = module.getAuthor();
-        String versionName = module.getVersion();
         String description = module.getDescription();
-        if (versionName != null) {
-            holder.versionName.setText(versionName);
-        }
-        if (author != null) {
-            holder.author.setText(context.getString(R.string.author, author));
-        }
-        if (description != null) {
-            holder.description.setText(description);
-        }
+        String noInfo = context.getString(R.string.no_info_provided);
 
+        holder.title.setText(module.getName());
+        holder.versionName.setText( TextUtils.isEmpty(version) ? noInfo : version);
+        holder.author.setText( TextUtils.isEmpty(author) ? noInfo : context.getString(R.string.author, author));
+        holder.description.setText( TextUtils.isEmpty(description) ? noInfo : description);
+
+        holder.checkBox.setOnCheckedChangeListener(null);
         holder.checkBox.setChecked(module.isEnabled());
-        holder.checkBox.setOnClickListener((v) -> {
-            CheckBox checkBox = (CheckBox) v;
-            if (checkBox.isChecked()) {
-                new Async.RootTask<Void, Void, Void>() {
-                    @Override
-                    protected Void doInBackground(Void... voids) {
-                        module.removeDisableFile();
-                        return null;
-                    }
-
-                    @Override
-                    protected void onPostExecute(Void v) {
-                        Snackbar.make(holder.title, R.string.disable_file_removed, Snackbar.LENGTH_SHORT).show();
-                    }
-                }.exec();
-            } else {
-                new Async.RootTask<Void, Void, Void>() {
-                    @Override
-                    protected Void doInBackground(Void... voids) {
-                        module.createDisableFile();
-                        return null;
-                    }
-
-                    @Override
-                    protected void onPostExecute(Void v) {
-                        Snackbar.make(holder.title, R.string.disable_file_created, Snackbar.LENGTH_SHORT).show();
-                    }
-                }.exec();
+        holder.checkBox.setOnCheckedChangeListener((v, isChecked) -> new Async.RootTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... voids) {
+                if (isChecked) {
+                    module.removeDisableFile();
+                } else {
+                    module.createDisableFile();
+                }
+                return null;
             }
-        });
 
-        holder.delete.setOnClickListener(v -> {
-            if (module.willBeRemoved()) {
-                new Async.RootTask<Void, Void, Void>() {
-                    @Override
-                    protected Void doInBackground(Void... voids) {
-                        module.deleteRemoveFile();
-                        return null;
-                    }
-
-                    @Override
-                    protected void onPostExecute(Void v) {
-                        Snackbar.make(holder.title, R.string.remove_file_deleted, Snackbar.LENGTH_SHORT).show();
-                        updateDeleteButton(holder, module);
-                    }
-                }.exec();
-            } else {
-                new Async.RootTask<Void, Void, Void>() {
-                    @Override
-                    protected Void doInBackground(Void... voids) {
-                        module.createRemoveFile();
-                        return null;
-                    }
-
-                    @Override
-                    protected void onPostExecute(Void v) {
-                        Snackbar.make(holder.title, R.string.remove_file_created, Snackbar.LENGTH_SHORT).show();
-                        updateDeleteButton(holder, module);
-                    }
-                }.exec();
+            @Override
+            protected void onPostExecute(Void v) {
+                int snack = isChecked ? R.string.disable_file_removed : R.string.disable_file_created;
+                Snackbar.make(holder.itemView, snack, Snackbar.LENGTH_SHORT).show();
             }
-        });
+        }.exec());
+
+        holder.delete.setOnClickListener(v -> new Async.RootTask<Void, Void, Void>() {
+            private final boolean removed = module.willBeRemoved();
+
+            @Override
+            protected Void doInBackground(Void... voids) {
+                if (removed) {
+                    module.deleteRemoveFile();
+                } else {
+                    module.createRemoveFile();
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void v) {
+                int snack = removed ? R.string.remove_file_deleted : R.string.remove_file_created;
+                Snackbar.make(holder.itemView, snack, Snackbar.LENGTH_SHORT).show();
+                updateDeleteButton(holder, module);
+            }
+        }.exec());
 
         if (module.isUpdated()) {
             holder.notice.setVisibility(View.VISIBLE);
@@ -144,7 +115,7 @@ public class ModulesAdapter extends RecyclerView.Adapter<ModulesAdapter.ViewHold
         return mList.size();
     }
 
-    class ViewHolder extends RecyclerView.ViewHolder {
+    static class ViewHolder extends RecyclerView.ViewHolder {
 
         @BindView(R.id.title) TextView title;
         @BindView(R.id.version_name) TextView versionName;
@@ -154,12 +125,9 @@ public class ModulesAdapter extends RecyclerView.Adapter<ModulesAdapter.ViewHold
         @BindView(R.id.author) TextView author;
         @BindView(R.id.delete) ImageView delete;
 
-        public ViewHolder(View itemView) {
+        ViewHolder(View itemView) {
             super(itemView);
-            WindowManager windowmanager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
             ButterKnife.bind(this, itemView);
-            DisplayMetrics dimension = new DisplayMetrics();
-            windowmanager.getDefaultDisplay().getMetrics(dimension);
 
             if (!Shell.rootAccess()) {
                 checkBox.setEnabled(false);

@@ -1,12 +1,12 @@
 package com.topjohnwu.magisk;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
@@ -18,6 +18,7 @@ import android.view.WindowManager;
 import android.widget.TextView;
 
 import com.topjohnwu.magisk.utils.Logger;
+import com.topjohnwu.magisk.utils.Utils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,9 +28,10 @@ import butterknife.ButterKnife;
 
 public class AboutActivity extends AppCompatActivity {
 
-    private static final String SOURCE_CODE_URL = "https://github.com/topjohnwu/MagiskManager";
-    private static final String XDA_THREAD = "http://forum.xda-developers.com/showthread.php?t=3432382";
     private static final String DONATION_URL = "http://topjohnwu.github.io/donate";
+    private static final String XDA_THREAD = "http://forum.xda-developers.com/showthread.php?t=3432382";
+    private static final String SOURCE_CODE_URL = "https://github.com/topjohnwu/MagiskManager";
+
     @BindView(R.id.toolbar) Toolbar toolbar;
     @BindView(R.id.app_version_info) AboutCardRow appVersionInfo;
     @BindView(R.id.app_changelog) AboutCardRow appChangelog;
@@ -38,14 +40,13 @@ public class AboutActivity extends AppCompatActivity {
     @BindView(R.id.app_source_code) AboutCardRow appSourceCode;
     @BindView(R.id.support_thread) AboutCardRow supportThread;
     @BindView(R.id.donation) AboutCardRow donation;
-    private AlertDialog.Builder builder;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         String theme = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("theme", "");
         Logger.dev("AboutActivity: Theme is " + theme);
-        if (theme.equals("Dark")) {
+        if (Global.Configs.isDarkTheme) {
             setTheme(R.style.AppTheme_dh);
         }
         setContentView(R.layout.activity_about);
@@ -63,24 +64,17 @@ public class AboutActivity extends AppCompatActivity {
         appVersionInfo.setSummary(BuildConfig.VERSION_NAME);
 
         String changes = null;
-        try {
-            InputStream is = getAssets().open("changelog.html");
+        try (InputStream is = getAssets().open("changelog.html")) {
             int size = is.available();
 
             byte[] buffer = new byte[size];
             is.read(buffer);
-            is.close();
 
             changes = new String(buffer);
         } catch (IOException ignored) {
         }
 
         appChangelog.removeSummary();
-        if (theme.equals("Dark")) {
-            builder = new AlertDialog.Builder(this, R.style.AlertDialog_dh);
-        } else {
-            builder = new AlertDialog.Builder(this);
-        }
         if (changes == null) {
             appChangelog.setVisibility(View.GONE);
         } else {
@@ -91,13 +85,11 @@ public class AboutActivity extends AppCompatActivity {
                 result = Html.fromHtml(changes);
             }
             appChangelog.setOnClickListener(v -> {
-                AlertDialog d = builder
+                AlertDialog d = Utils.getAlertDialogBuilder(this)
                         .setTitle(R.string.app_changelog)
                         .setMessage(result)
                         .setPositiveButton(android.R.string.ok, null)
-                        .create();
-
-                d.show();
+                        .show();
 
                 //noinspection ConstantConditions
                 ((TextView) d.findViewById(android.R.id.message)).setMovementMethod(LinkMovementMethod.getInstance());
@@ -112,7 +104,7 @@ public class AboutActivity extends AppCompatActivity {
             } else {
                 result = Html.fromHtml(getString(R.string.app_developers_));
             }
-            AlertDialog d = builder
+            AlertDialog d = Utils.getAlertDialogBuilder(this)
                     .setTitle(R.string.app_developers)
                     .setMessage(result)
                     .setPositiveButton(android.R.string.ok, null)

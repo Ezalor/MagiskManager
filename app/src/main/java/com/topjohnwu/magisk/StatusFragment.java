@@ -1,9 +1,12 @@
 package com.topjohnwu.magisk;
 
-import android.app.Fragment;
-import android.app.FragmentTransaction;
+import android.app.AlertDialog;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,22 +19,18 @@ import com.topjohnwu.magisk.utils.Async;
 import com.topjohnwu.magisk.utils.CallbackHandler;
 import com.topjohnwu.magisk.utils.Logger;
 import com.topjohnwu.magisk.utils.Shell;
-
-import java.util.List;
+import com.topjohnwu.magisk.utils.Utils;
 
 import butterknife.BindColor;
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 public class StatusFragment extends Fragment implements CallbackHandler.EventListener {
 
-    public static double magiskVersion, remoteMagiskVersion = -1;
-    public static String magiskVersionString, magiskLink, magiskChangelog;
-    public static int SNCheckResult = -1;
+    private static boolean noDialog = false;
 
-    public static final CallbackHandler.Event updateCheckDone = new CallbackHandler.Event();
-    public static final CallbackHandler.Event safetyNetDone = new CallbackHandler.Event();
-
+    private Unbinder unbinder;
     @BindView(R.id.swipeRefreshLayout) SwipeRefreshLayout mSwipeRefreshLayout;
 
     @BindView(R.id.magisk_status_container) View magiskStatusContainer;
@@ -56,43 +55,49 @@ public class StatusFragment extends Fragment implements CallbackHandler.EventLis
     @BindColor(R.color.grey500) int colorNeutral;
     @BindColor(R.color.blue500) int colorInfo;
     @BindColor(android.R.color.transparent) int trans;
+    int defaultColor;
 
-    static {
-        checkMagiskInfo();
-    }
+    private AlertDialog updateMagisk;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.status_fragment, container, false);
-        ButterKnife.bind(this, v);
+        View v = inflater.inflate(R.layout.fragment_status, container, false);
+        unbinder = ButterKnife.bind(this, v);
+
+        defaultColor = magiskUpdateText.getCurrentTextColor();
 
         mSwipeRefreshLayout.setOnRefreshListener(() -> {
             magiskStatusContainer.setBackgroundColor(trans);
             magiskStatusIcon.setImageResource(0);
             magiskUpdateText.setText(R.string.checking_for_updates);
             magiskCheckUpdatesProgress.setVisibility(View.VISIBLE);
+            magiskUpdateText.setTextColor(defaultColor);
 
+            safetyNetProgress.setVisibility(View.GONE);
+            safetyNetContainer.setBackgroundColor(colorNeutral);
+            safetyNetIcon.setImageResource(R.drawable.ic_safetynet);
+            safetyNetStatusText.setText(R.string.safetyNet_check_text);
+            safetyNetStatusText.setTextColor(defaultColor);
+
+            Global.Events.safetyNetDone.isTriggered = false;
+            noDialog = false;
+
+            updateUI();
+            new Async.CheckUpdates().exec();
+        });
+
+        safetyNetContainer.setOnClickListener(view -> {
             safetyNetProgress.setVisibility(View.VISIBLE);
             safetyNetContainer.setBackgroundColor(trans);
             safetyNetIcon.setImageResource(0);
             safetyNetStatusText.setText(R.string.checking_safetyNet_status);
-
-            updateUI();
-            new Async.CheckUpdates().exec();
             Async.checkSafetyNet(getActivity());
         });
 
-        updateUI();
-        if (updateCheckDone.isTriggered) {
-            updateCheckUI();
-        }
-        if (safetyNetDone.isTriggered) {
-            updateSafetyNetUI();
-        }
-
-        if (magiskVersion < 0 && Shell.rootAccess()) {
-            MainActivity.alertBuilder
+        if (Global.Info.magiskVersion < 0 && Shell.rootAccess() && !noDialog) {
+            noDialog = true;
+            Utils.getAlertDialogBuilder(getActivity())
                     .setTitle(R.string.no_magisk_title)
                     .setMessage(R.string.no_magisk_msg)
                     .setCancelable(true)
@@ -108,78 +113,81 @@ public class StatusFragment extends Fragment implements CallbackHandler.EventLis
                     .show();
         }
 
+        updateUI();
+
         return v;
     }
 
     @Override
     public void onTrigger(CallbackHandler.Event event) {
-        if (event == updateCheckDone) {
+        if (event == Global.Events.updateCheckDone) {
             Logger.dev("StatusFragment: Update Check UI refresh triggered");
             updateCheckUI();
-        } else if (event == safetyNetDone) {
+        } else if (event == Global.Events.safetyNetDone) {
             Logger.dev("StatusFragment: SafetyNet UI refresh triggered");
             updateSafetyNetUI();
         }
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        CallbackHandler.register(updateCheckDone, this);
-        CallbackHandler.register(safetyNetDone, this);
+    public void onStart() {
+        super.onStart();
+        CallbackHandler.register(Global.Events.updateCheckDone, this);
+        CallbackHandler.register(Global.Events.safetyNetDone, this);
+        if (Global.Events.updateCheckDone.isTriggered) {
+            updateCheckUI();
+        }
+        if (Global.Events.safetyNetDone.isTriggered) {
+            updateSafetyNetUI();
+        }
         getActivity().setTitle(R.string.status);
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        CallbackHandler.unRegister(updateCheckDone, this);
-        CallbackHandler.unRegister(safetyNetDone, this);
+    public void onStop() {
+        CallbackHandler.unRegister(Global.Events.updateCheckDone, this);
+        CallbackHandler.unRegister(Global.Events.safetyNetDone, this);
+        super.onStop();
     }
 
-    private static void checkMagiskInfo() {
-        List<String> ret = Shell.sh("getprop magisk.version");
-        if (ret.get(0).length() == 0) {
-            magiskVersion = -1;
-        } else {
-            try {
-                magiskVersionString = ret.get(0);
-                magiskVersion = Double.parseDouble(ret.get(0));
-            } catch (NumberFormatException e) {
-                // Custom version don't need to receive updates
-                magiskVersion = Double.POSITIVE_INFINITY;
-            }
-        }
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        unbinder.unbind();
     }
 
     private void updateUI() {
         int image, color;
 
-        checkMagiskInfo();
+        Global.updateMagiskInfo();
 
-        if (magiskVersion < 0) {
+        if (Global.Info.magiskVersion < 0) {
             magiskVersionText.setText(R.string.magisk_version_error);
         } else {
-            magiskVersionText.setText(getString(R.string.magisk_version, magiskVersionString));
+            magiskVersionText.setText(getString(R.string.magisk_version, Global.Info.magiskVersionString));
         }
 
-        if (Shell.rootStatus == 1) {
-            color = colorOK;
-            image = R.drawable.ic_check_circle;
-            rootStatusText.setText(R.string.proper_root);
-            rootInfoText.setText(Shell.sh("su -v").get(0));
-
-        } else {
-            rootInfoText.setText(R.string.root_info_warning);
-            if (Shell.rootStatus == 0) {
+        switch (Shell.rootStatus) {
+            case 0:
                 color = colorBad;
                 image = R.drawable.ic_cancel;
                 rootStatusText.setText(R.string.not_rooted);
-            } else {
+                rootInfoText.setText(R.string.root_info_warning);
+                break;
+            case 1:
+                if (Global.Info.suVersion != null) {
+                    color = colorOK;
+                    image = R.drawable.ic_check_circle;
+                    rootStatusText.setText(R.string.proper_root);
+                    rootInfoText.setText(Global.Info.suVersion);
+                    break;
+                }
+            case -1:
+            default:
                 color = colorNeutral;
                 image = R.drawable.ic_help;
                 rootStatusText.setText(R.string.root_error);
-            }
+                rootInfoText.setText(R.string.root_info_warning);
         }
         rootStatusContainer.setBackgroundColor(color);
         rootStatusText.setTextColor(color);
@@ -190,21 +198,21 @@ public class StatusFragment extends Fragment implements CallbackHandler.EventLis
     private void updateCheckUI() {
         int image, color;
 
-        if (remoteMagiskVersion < 0) {
+        if (Global.Info.remoteMagiskVersion < 0) {
             color = colorNeutral;
             image = R.drawable.ic_help;
             magiskUpdateText.setText(R.string.cannot_check_updates);
-        } else if (remoteMagiskVersion > magiskVersion) {
+        } else if (Global.Info.remoteMagiskVersion > Global.Info.magiskVersion) {
             color = colorInfo;
             image = R.drawable.ic_update;
-            magiskUpdateText.setText(getString(R.string.magisk_update_available, remoteMagiskVersion));
+            magiskUpdateText.setText(getString(R.string.magisk_update_available, Global.Info.remoteMagiskVersion));
         } else {
             color = colorOK;
             image = R.drawable.ic_check_circle;
             magiskUpdateText.setText(getString(R.string.up_to_date, getString(R.string.magisk)));
         }
 
-        if (magiskVersion < 0) {
+        if (Global.Info.magiskVersion < 0) {
             color = colorBad;
             image = R.drawable.ic_cancel;
         }
@@ -215,12 +223,48 @@ public class StatusFragment extends Fragment implements CallbackHandler.EventLis
 
         magiskCheckUpdatesProgress.setVisibility(View.GONE);
         mSwipeRefreshLayout.setRefreshing(false);
+
+        updateMagisk = Utils.getAlertDialogBuilder(getActivity())
+                .setTitle(R.string.magisk_update_title)
+                .setMessage(getString(R.string.magisk_update_message, Global.Info.remoteMagiskVersion))
+                .setCancelable(true)
+                .setPositiveButton(R.string.goto_install, (dialogInterface, i) -> {
+                    ((MainActivity) getActivity()).navigationView.setCheckedItem(R.id.install);
+                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                    transaction.setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out);
+                    try {
+                        transaction.replace(R.id.content_frame, new InstallFragment(), "install").commit();
+                    } catch (IllegalStateException ignored) {}
+                })
+                .setNeutralButton(R.string.check_release_notes, (dialog, which) -> {
+                    getActivity().startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Global.Info.releaseNoteLink)));
+                })
+                .setNegativeButton(R.string.no_thanks, null)
+                .create();
+
+        if (Global.Info.magiskVersion < Global.Info.remoteMagiskVersion && Shell.rootAccess()) {
+            magiskStatusContainer.setOnClickListener(view -> updateMagisk.show());
+            if (!noDialog) {
+                noDialog = true;
+                updateMagisk.show();
+            }
+        }
     }
 
     private void updateSafetyNetUI() {
         int image, color;
         safetyNetProgress.setVisibility(View.GONE);
-        switch (SNCheckResult) {
+        switch (Global.Info.SNCheckResult) {
+            case -3:
+                color = colorNeutral;
+                image = R.drawable.ic_help;
+                safetyNetStatusText.setText(R.string.safetyNet_connection_suspended);
+                break;
+            case -2:
+                color = colorNeutral;
+                image = R.drawable.ic_help;
+                safetyNetStatusText.setText(R.string.safetyNet_connection_failed);
+                break;
             case -1:
                 color = colorNeutral;
                 image = R.drawable.ic_help;

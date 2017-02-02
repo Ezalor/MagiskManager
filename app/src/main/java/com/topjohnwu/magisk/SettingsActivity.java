@@ -1,18 +1,21 @@
 package com.topjohnwu.magisk;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
+import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
+import android.preference.PreferenceScreen;
+import android.preference.SwitchPreference;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.topjohnwu.magisk.module.ModuleHelper;
 import com.topjohnwu.magisk.utils.Async;
 import com.topjohnwu.magisk.utils.Logger;
 import com.topjohnwu.magisk.utils.Shell;
@@ -28,9 +31,7 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        String theme = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("theme", "");
-        Logger.dev("AboutActivity: Theme is " + theme);
-        if (theme.equals("Dark")) {
+        if (Global.Configs.isDarkTheme) {
             setTheme(R.style.AppTheme_dh);
         }
 
@@ -72,32 +73,51 @@ public class SettingsActivity extends AppCompatActivity {
     public static class SettingsFragment extends PreferenceFragment
             implements SharedPreferences.OnSharedPreferenceChangeListener {
 
-        private ListPreference themePreference;
         private SharedPreferences prefs;
+        private PreferenceScreen prefScreen;
+
+        private ListPreference suAccess, autoRes, suNotification, requestTimeout;
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.app_settings);
-            PreferenceManager.setDefaultValues(getActivity(), R.xml.app_settings, false);
             prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            prefScreen = getPreferenceScreen();
 
-            themePreference = (ListPreference) findPreference("theme");
+            PreferenceCategory magiskCategory = (PreferenceCategory) findPreference("magisk");
+            PreferenceCategory suCategory = (PreferenceCategory) findPreference("superuser");
+
+            suAccess = (ListPreference) findPreference("su_access");
+            autoRes = (ListPreference) findPreference("su_auto_response");
+            requestTimeout = (ListPreference) findPreference("su_request_timeout");
+            suNotification = (ListPreference) findPreference("su_notification");
+
+            setSummary();
+
             CheckBoxPreference busyboxPreference = (CheckBoxPreference) findPreference("busybox");
             CheckBoxPreference magiskhidePreference = (CheckBoxPreference) findPreference("magiskhide");
-            CheckBoxPreference hostsPreference = (CheckBoxPreference) findPreference("hosts");
+            SwitchPreference hostsPreference = (SwitchPreference) findPreference("hosts");
 
-            themePreference.setSummary(themePreference.getValue());
+            findPreference("clear").setOnPreferenceClickListener((pref) -> {
+                ModuleHelper.clearRepoCache(getActivity());
+                return true;
+            });
 
-            if (StatusFragment.magiskVersion < 9) {
-                hostsPreference.setEnabled(false);
-                busyboxPreference.setEnabled(false);
-            } else if (StatusFragment.magiskVersion < 8) {
-                magiskhidePreference.setEnabled(false);
+            if (!Shell.rootAccess()) {
+                prefScreen.removePreference(magiskCategory);
+                prefScreen.removePreference(suCategory);
             } else {
-                busyboxPreference.setEnabled(true);
-                magiskhidePreference.setEnabled(true);
-                hostsPreference.setEnabled(true);
+                if (!Global.Info.isSuClient) {
+                    prefScreen.removePreference(suCategory);
+                }
+                if (Global.Info.magiskVersion < 9) {
+                    hostsPreference.setEnabled(false);
+                    busyboxPreference.setEnabled(false);
+                }
+                if (Global.Info.magiskVersion < 8) {
+                    magiskhidePreference.setEnabled(false);
+                }
             }
         }
 
@@ -108,102 +128,109 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onDestroy() {
-            super.onDestroy();
+        public void onPause() {
+            super.onPause();
             prefs.unregisterOnSharedPreferenceChangeListener(this);
         }
 
         @Override
         public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
             Logger.dev("Settings: Prefs change " + key);
-            boolean checked;
+            boolean enabled;
 
             switch (key) {
-                case "theme":
-                    String theme = prefs.getString(key, "");
-
-                    themePreference.setSummary(theme);
-                    if (theme.equals("Dark")) {
-                        getActivity().getApplication().setTheme(R.style.AppTheme_dh);
-                    } else {
-                        getActivity().getApplication().setTheme(R.style.AppTheme);
+                case "dark_theme":
+                    enabled = prefs.getBoolean("dark_theme", false);
+                    if (Global.Configs.isDarkTheme != enabled) {
+                        Global.Configs.isDarkTheme = enabled;
+                        getActivity().recreate();
+                        Global.Events.reloadMainActivity.trigger();
                     }
-                    Intent intent = new Intent(getActivity(), MainActivity.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intent);
                     break;
                 case "magiskhide":
-                     checked = prefs.getBoolean("magiskhide", false);
-                    if (checked) {
-                        new Async.RootTask<Void, Void, Void>() {
-                            @Override
-                            protected Void doInBackground(Void... params) {
+                    enabled = prefs.getBoolean("magiskhide", false);
+                    new Async.RootTask<Void, Void, Void>() {
+                        private boolean enable = enabled;
+                        @Override
+                        protected Void doInBackground(Void... params) {
+                            if (enable) {
                                 Utils.createFile("/magisk/.core/magiskhide/enable");
-                                return null;
-                            }
-                        }.exec();
-                    } else {
-                        new Async.RootTask<Void, Void, Void>() {
-                            @Override
-                            protected Void doInBackground(Void... params) {
+                            } else {
                                 Utils.removeItem("/magisk/.core/magiskhide/enable");
-                                return null;
                             }
-                        }.exec();
-                    }
+
+                            return null;
+                        }
+                    }.exec();
                     Toast.makeText(getActivity(), R.string.settings_reboot_toast, Toast.LENGTH_LONG).show();
                     break;
                 case "busybox":
-                    checked = prefs.getBoolean("busybox", false);
-                    if (checked) {
-                        new Async.RootTask<Void, Void, Void>() {
-                            @Override
-                            protected Void doInBackground(Void... params) {
+                    enabled = prefs.getBoolean("busybox", false);
+                    new Async.RootTask<Void, Void, Void>() {
+                        private boolean enable = enabled;
+                        @Override
+                        protected Void doInBackground(Void... params) {
+                            if (enable) {
                                 Utils.createFile("/magisk/.core/busybox/enable");
-                                return null;
-                            }
-                        }.exec();
-                    } else {
-                        new Async.RootTask<Void, Void, Void>() {
-                            @Override
-                            protected Void doInBackground(Void... params) {
+                            } else {
                                 Utils.removeItem("/magisk/.core/busybox/enable");
-                                return null;
                             }
-                        }.exec();
-                    }
+                            return null;
+                        }
+                    }.exec();
                     Toast.makeText(getActivity(), R.string.settings_reboot_toast, Toast.LENGTH_LONG).show();
                     break;
                 case "hosts":
-                    checked = prefs.getBoolean("hosts", false);
-                    if (checked) {
-                        new Async.RootTask<Void, Void, Void>() {
-                            @Override
-                            protected Void doInBackground(Void... voids) {
-                                Shell.su("cp -af /system/etc/hosts /magisk/.core/hosts");
-                                return null;
+                    enabled = prefs.getBoolean("hosts", false);
+                    new Async.RootTask<Void, Void, Void>() {
+                        private boolean enable = enabled;
+                        @Override
+                        protected Void doInBackground(Void... voids) {
+                            if (enable) {
+                                Shell.su("cp -af /system/etc/hosts /magisk/.core/hosts",
+                                        "mount -o bind /magisk/.core/hosts /system/etc/hosts");
+                            } else {
+                                Shell.su("umount -l /system/etc/hosts",
+                                        "rm -f /magisk/.core/hosts");
                             }
-                        }.exec();
-                    } else {
-                        new Async.RootTask<Void, Void, Void>() {
-                            @Override
-                            protected Void doInBackground(Void... voids) {
-                                Shell.su("umount -l /system/etc/hosts", "rm -f /magisk/.core/hosts");
-                                return null;
-                            }
-                        }.exec();
-                    }
-                    Toast.makeText(getActivity(), R.string.settings_reboot_toast, Toast.LENGTH_LONG).show();
+                            return null;
+                        }
+                    }.exec();
+                    break;
+                case "su_access":
+                    Global.Configs.suAccessState = Utils.getPrefsInt(prefs, "su_access", 0);
+                    Shell.su("setprop persist.sys.root_access " + Global.Configs.suAccessState);
+                    suAccess.setSummary(getResources()
+                            .getStringArray(R.array.su_access)[Global.Configs.suAccessState]);
+                    break;
+                case "su_request_timeout":
+                    Global.Configs.suRequestTimeout = Utils.getPrefsInt(prefs, "su_request_timeout", 10);
+                    break;
+                case "su_auto_response":
+                    Global.Configs.suResponseType = Utils.getPrefsInt(prefs, "su_auto_response", 0);
+                    break;
+                case "su_notification":
+                    Global.Configs.suNotificationType = Utils.getPrefsInt(prefs, "su_notification", 1);
                     break;
                 case "developer_logging":
-                    Logger.devLog = prefs.getBoolean("developer_logging", false);
+                    Global.Configs.devLogging = prefs.getBoolean("developer_logging", false);
                     break;
                 case "shell_logging":
-                    Logger.logShell = prefs.getBoolean("shell_logging", false);
+                    Global.Configs.shellLogging = prefs.getBoolean("shell_logging", false);
                     break;
             }
+            setSummary();
+        }
 
+        private void setSummary() {
+            suAccess.setSummary(getResources()
+                    .getStringArray(R.array.su_access)[Global.Configs.suAccessState]);
+            autoRes.setSummary(getResources()
+                    .getStringArray(R.array.auto_response)[Global.Configs.suResponseType]);
+            suNotification.setSummary(getResources()
+                    .getStringArray(R.array.su_notification)[Global.Configs.suNotificationType]);
+            requestTimeout.setSummary(
+                    getString(R.string.request_timeout_summary, prefs.getString("su_request_timeout", "10")));
         }
     }
 

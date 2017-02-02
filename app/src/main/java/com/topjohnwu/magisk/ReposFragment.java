@@ -1,8 +1,8 @@
 package com.topjohnwu.magisk;
 
-import android.app.Fragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.RecyclerView;
@@ -16,24 +16,24 @@ import android.widget.TextView;
 
 import com.topjohnwu.magisk.adapters.ReposAdapter;
 import com.topjohnwu.magisk.adapters.SimpleSectionedRecyclerViewAdapter;
+import com.topjohnwu.magisk.module.ModuleHelper;
 import com.topjohnwu.magisk.module.Repo;
 import com.topjohnwu.magisk.utils.Async;
 import com.topjohnwu.magisk.utils.CallbackHandler;
 import com.topjohnwu.magisk.utils.Logger;
-import com.topjohnwu.magisk.utils.ModuleHelper;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 public class ReposFragment extends Fragment implements CallbackHandler.EventListener {
 
-    public static final CallbackHandler.Event repoLoadDone = new CallbackHandler.Event();
-
+    private Unbinder unbinder;
     @BindView(R.id.recyclerView) RecyclerView recyclerView;
-    @BindView(R.id.empty_rv) TextView emptyTv;
+    @BindView(R.id.empty_rv) TextView emptyRv;
     @BindView(R.id.swipeRefreshLayout) SwipeRefreshLayout mSwipeRefreshLayout;
 
     private List<Repo> mUpdateRepos = new ArrayList<>();
@@ -47,16 +47,19 @@ public class ReposFragment extends Fragment implements CallbackHandler.EventList
 
     private SearchView.OnQueryTextListener searchListener;
 
-    @Nullable
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
 
+    @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.repos_fragment, container, false);
+        View view = inflater.inflate(R.layout.fragment_repos, container, false);
+        unbinder = ButterKnife.bind(this, view);
 
-        ButterKnife.bind(this, view);
-
-        mSectionedAdapter = new
-                SimpleSectionedRecyclerViewAdapter(getActivity(), R.layout.section,
+        mSectionedAdapter = new SimpleSectionedRecyclerViewAdapter(R.layout.section,
                 R.id.section_text, new ReposAdapter(fUpdateRepos, fInstalledRepos, fOthersRepos));
 
         recyclerView.setAdapter(mSectionedAdapter);
@@ -68,7 +71,7 @@ public class ReposFragment extends Fragment implements CallbackHandler.EventList
             new Async.LoadRepos(getActivity()).exec();
         });
 
-        if (repoLoadDone.isTriggered) {
+        if (Global.Events.repoLoadDone.isTriggered) {
             reloadRepos();
             updateUI();
         }
@@ -104,17 +107,22 @@ public class ReposFragment extends Fragment implements CallbackHandler.EventList
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        setHasOptionsMenu(true);
-        CallbackHandler.register(repoLoadDone, this);
+    public void onStart() {
+        super.onStart();
+        CallbackHandler.register(Global.Events.repoLoadDone, this);
         getActivity().setTitle(R.string.downloads);
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        CallbackHandler.unRegister(repoLoadDone, this);
+    public void onStop() {
+        CallbackHandler.unRegister(Global.Events.repoLoadDone, this);
+        super.onStop();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        unbinder.unbind();
     }
 
     private void reloadRepos() {
@@ -129,7 +137,7 @@ public class ReposFragment extends Fragment implements CallbackHandler.EventList
 
     private void updateUI() {
         if (fUpdateRepos.size() + fInstalledRepos.size() + fOthersRepos.size() == 0) {
-            emptyTv.setVisibility(View.VISIBLE);
+            emptyRv.setVisibility(View.VISIBLE);
             recyclerView.setVisibility(View.GONE);
         } else {
             List<SimpleSectionedRecyclerViewAdapter.Section> sections = new ArrayList<>();
@@ -144,7 +152,7 @@ public class ReposFragment extends Fragment implements CallbackHandler.EventList
             }
             SimpleSectionedRecyclerViewAdapter.Section[] array = sections.toArray(new SimpleSectionedRecyclerViewAdapter.Section[sections.size()]);
             mSectionedAdapter.setSections(array);
-            emptyTv.setVisibility(View.GONE);
+            emptyRv.setVisibility(View.GONE);
             recyclerView.setVisibility(View.VISIBLE);
         }
         mSwipeRefreshLayout.setRefreshing(false);
