@@ -62,7 +62,6 @@
 
     <!--Log Fragment-->
     <string name="menuSaveToSd">保存到 SD 卡</string>
-    <string name="menuSend">发送</string>
     <string name="menuReload">重载</string>
     <string name="menuClearLog">清除日志</string>
     <string name="logs_cleared">日志已成功清除</string>
@@ -121,7 +120,6 @@
     <string name="settings_clear_cache_title">清除资源库缓存</string>
     <string name="settings_clear_cache_summary">清除已缓存的在线资源库信息，强制应用刷新在线数据</string>
 
-    <string name="settings_magiskhide_title">启用 Magisk 隐藏</string>
     <string name="settings_magiskhide_summary">隐藏 Magisk 使其不被多种方法检测到</string>
     <string name="settings_busybox_title">启用 BusyBox</string>
     <string name="settings_busybox_summary">将 Magisk 内置的 Busybox 挂载到 xbin</string>
