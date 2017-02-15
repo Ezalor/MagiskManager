@@ -1,6 +1,6 @@
 <resources>
     <!--Universal-->
-<!--    <string name="app_name" translatable="false">Magisk 管理器</string>-->
+    <string name="app_name" translatable="false">Magisk 管理器</string>
 
     <!--Welcome Activity-->
     <string name="navigation_drawer_open">Open navigation drawer</string>
