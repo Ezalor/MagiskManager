@@ -3,7 +3,6 @@ package com.topjohnwu.magisk;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.RecyclerView;
@@ -16,15 +15,16 @@ import android.view.ViewGroup;
 import android.widget.SearchView;
 
 import com.topjohnwu.magisk.adapters.ApplicationAdapter;
-import com.topjohnwu.magisk.utils.Async;
-import com.topjohnwu.magisk.utils.CallbackHandler;
+import com.topjohnwu.magisk.asyncs.MagiskHide;
+import com.topjohnwu.magisk.components.Fragment;
+import com.topjohnwu.magisk.utils.CallbackEvent;
 import com.topjohnwu.magisk.utils.Logger;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 
-public class MagiskHideFragment extends Fragment implements CallbackHandler.EventListener {
+public class MagiskHideFragment extends Fragment implements CallbackEvent.Listener<Void> {
 
     private Unbinder unbinder;
     @BindView(R.id.swipeRefreshLayout) SwipeRefreshLayout mSwipeRefreshLayout;
@@ -50,7 +50,7 @@ public class MagiskHideFragment extends Fragment implements CallbackHandler.Even
         PackageManager packageManager = getActivity().getPackageManager();
 
         mSwipeRefreshLayout.setRefreshing(true);
-        mSwipeRefreshLayout.setOnRefreshListener(() -> new Async.LoadApps(packageManager).exec());
+        mSwipeRefreshLayout.setOnRefreshListener(() -> new MagiskHide(getActivity()).list());
 
         appAdapter = new ApplicationAdapter(packageManager);
         recyclerView.setAdapter(appAdapter);
@@ -71,6 +71,9 @@ public class MagiskHideFragment extends Fragment implements CallbackHandler.Even
             }
         };
 
+        if (getApplication().magiskHideDone.isTriggered)
+            onTrigger(getApplication().magiskHideDone);
+
         return view;
     }
 
@@ -85,15 +88,12 @@ public class MagiskHideFragment extends Fragment implements CallbackHandler.Even
     public void onStart() {
         super.onStart();
         getActivity().setTitle(R.string.magiskhide);
-        CallbackHandler.register(Global.Events.packageLoadDone, this);
-        if (Global.Events.packageLoadDone.isTriggered) {
-            onTrigger(Global.Events.packageLoadDone);
-        }
+        getApplication().magiskHideDone.register(this);
     }
 
     @Override
     public void onStop() {
-        CallbackHandler.unRegister(Global.Events.packageLoadDone, this);
+        getApplication().magiskHideDone.unRegister(this);
         super.onStop();
     }
 
@@ -104,9 +104,9 @@ public class MagiskHideFragment extends Fragment implements CallbackHandler.Even
     }
 
     @Override
-    public void onTrigger(CallbackHandler.Event event) {
+    public void onTrigger(CallbackEvent<Void> event) {
         Logger.dev("MagiskHideFragment: UI refresh");
-        appAdapter.setLists(Global.Data.appList, Global.Data.magiskHideList);
+        appAdapter.setLists(getApplication().appList, getApplication().magiskHideList);
         mSwipeRefreshLayout.setRefreshing(false);
         if (!TextUtils.isEmpty(lastFilter)) {
             appAdapter.filter(lastFilter);

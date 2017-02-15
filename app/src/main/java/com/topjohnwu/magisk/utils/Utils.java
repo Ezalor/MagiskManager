@@ -1,7 +1,7 @@
 package com.topjohnwu.magisk.utils;
 
 import android.Manifest;
-import android.app.AlertDialog;
+import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.Context;
 import android.content.IntentFilter;
@@ -10,11 +10,14 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.widget.Toast;
 
-import com.topjohnwu.magisk.Global;
+import com.topjohnwu.magisk.MagiskManager;
 import com.topjohnwu.magisk.R;
+import com.topjohnwu.magisk.asyncs.LoadRepos;
+import com.topjohnwu.magisk.database.RepoDatabaseHelper;
 import com.topjohnwu.magisk.receivers.DownloadReceiver;
 
 import java.io.File;
@@ -25,18 +28,9 @@ public class Utils {
     public static boolean isDownloading = false;
 
     public static boolean itemExist(String path) {
-        return itemExist(true, path);
-    }
-
-    public static boolean itemExist(boolean root, String path) {
         String command = "if [ -e " + path + " ]; then echo true; else echo false; fi";
-        List<String> ret;
-        if (Shell.rootAccess() && root) {
-            ret = Shell.su(command);
-            return isValidShellResponse(ret) && Boolean.parseBoolean(ret.get(0));
-        } else {
-            return new File(path).exists();
-        }
+        List<String> ret = Shell.su(command);
+        return isValidShellResponse(ret) && Boolean.parseBoolean(ret.get(0));
     }
 
     public static boolean commandExists(String s) {
@@ -59,10 +53,8 @@ public class Utils {
     }
 
     public static List<String> getModList(String path) {
-        List<String> ret;
         String command = "find " + path + " -type d -maxdepth 1 ! -name \"*.core\" ! -name \"*lost+found\" ! -name \"*magisk\"";
-        ret = Shell.su(command);
-        return ret;
+        return Shell.su(command);
     }
 
     public static List<String> readFile(String path) {
@@ -77,9 +69,8 @@ public class Utils {
     }
 
     public static void dlAndReceive(Context context, DownloadReceiver receiver, String link, String filename) {
-        if (isDownloading) {
+        if (isDownloading)
             return;
-        }
 
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             Toast.makeText(context, R.string.permissionNotGranted, Toast.LENGTH_LONG).show();
@@ -126,7 +117,7 @@ public class Utils {
     }
 
     public static AlertDialog.Builder getAlertDialogBuilder(Context context) {
-        if (Global.Configs.isDarkTheme) {
+        if (((MagiskManager) context.getApplicationContext()).isDarkTheme) {
             return new AlertDialog.Builder(context, R.style.AlertDialog_dh);
         } else {
             return new AlertDialog.Builder(context);
@@ -151,4 +142,24 @@ public class Utils {
         return Integer.parseInt(prefs.getString(key, String.valueOf(def)));
     }
 
+    public static MagiskManager getMagiskManager(Context context) {
+        return (MagiskManager) context.getApplicationContext();
+    }
+
+    public static void checkSafetyNet(MagiskManager magiskManager) {
+        new SafetyNetHelper(magiskManager) {
+            @Override
+            public void handleResults(int i) {
+                magiskManager.SNCheckResult = i;
+                magiskManager.safetyNetDone.trigger();
+            }
+        }.requestTest();
+    }
+
+    public static void clearRepoCache(Activity activity) {
+        MagiskManager magiskManager = getMagiskManager(activity);
+        magiskManager.prefs.edit().remove(LoadRepos.ETAG_KEY).apply();
+        new RepoDatabaseHelper(activity).clearRepo();
+        Toast.makeText(activity, R.string.repo_cache_cleared, Toast.LENGTH_SHORT).show();
+    }
 }

@@ -15,20 +15,20 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.topjohnwu.magisk.utils.CallbackHandler;
+import com.topjohnwu.magisk.components.Activity;
+import com.topjohnwu.magisk.utils.CallbackEvent;
 import com.topjohnwu.magisk.utils.Shell;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, CallbackHandler.EventListener {
+public class MainActivity extends Activity
+        implements NavigationView.OnNavigationItemSelectedListener, CallbackEvent.Listener<Void> {
 
     private final Handler mDrawerHandler = new Handler();
     private SharedPreferences prefs;
@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity
 
         prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
-        if (Global.Configs.isDarkTheme) {
+        if (getTopApplication().isDarkTheme) {
             setTheme(R.style.AppTheme_dh);
         }
         super.onCreate(savedInstanceState);
@@ -79,30 +79,28 @@ public class MainActivity extends AppCompatActivity
         navigate(R.id.status);
 
         navigationView.setNavigationItemSelectedListener(this);
-        CallbackHandler.register(Global.Events.reloadMainActivity, this);
+        getTopApplication().reloadMainActivity.register(this);
 
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        CallbackHandler.register(Global.Events.updateCheckDone, this);
-        if (Global.Events.updateCheckDone.isTriggered)
-            onTrigger(Global.Events.updateCheckDone);
+        getTopApplication().updateCheckDone.register(this);
+//        if (getTopApplication().updateCheckDone.isTriggered)
+//            onTrigger(getTopApplication().updateCheckDone);
         checkHideSection();
     }
 
     @Override
     protected void onPause() {
-        CallbackHandler.unRegister(Global.Events.updateCheckDone, this);
+        getTopApplication().updateCheckDone.unRegister(this);
         super.onPause();
     }
 
     @Override
     protected void onDestroy() {
-        CallbackHandler.unRegister(Global.Events.reloadMainActivity, this);
-        // Let garbage collector remove them
-        Global.Data.clear();
+        getTopApplication().reloadMainActivity.unRegister(this);
         super.onDestroy();
     }
 
@@ -123,12 +121,12 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onTrigger(CallbackHandler.Event event) {
-        if (event == Global.Events.updateCheckDone) {
+    public void onTrigger(CallbackEvent<Void> event) {
+        if (event == getTopApplication().updateCheckDone) {
             Menu menu = navigationView.getMenu();
-            menu.findItem(R.id.install).setVisible(Global.Info.remoteMagiskVersion > 0 &&
-                    Shell.rootAccess());
-        } else if (event == Global.Events.reloadMainActivity) {
+            menu.findItem(R.id.install).setVisible(
+                    getTopApplication().remoteMagiskVersion > 0 && Shell.rootAccess());
+        } else if (event == getTopApplication().reloadMainActivity) {
             recreate();
         }
     }
@@ -137,11 +135,11 @@ public class MainActivity extends AppCompatActivity
         Menu menu = navigationView.getMenu();
         if (Shell.rootAccess()) {
             menu.findItem(R.id.magiskhide).setVisible(
-                    Global.Info.magiskVersion >= 8 && prefs.getBoolean("magiskhide", false));
-            menu.findItem(R.id.modules).setVisible(Global.Info.magiskVersion >= 4);
-            menu.findItem(R.id.downloads).setVisible(Global.Info.magiskVersion >= 4);
+                    getTopApplication().magiskVersion >= 8 && prefs.getBoolean("magiskhide", false));
+            menu.findItem(R.id.modules).setVisible(getTopApplication().magiskVersion >= 4);
+            menu.findItem(R.id.downloads).setVisible(getTopApplication().magiskVersion >= 4);
             menu.findItem(R.id.log).setVisible(true);
-            menu.findItem(R.id.superuser).setVisible(Global.Info.isSuClient);
+            menu.findItem(R.id.superuser).setVisible(getTopApplication().isSuClient);
         }
     }
 

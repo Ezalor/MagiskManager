@@ -2,9 +2,10 @@ package com.topjohnwu.magisk.receivers;
 
 import android.net.Uri;
 
-import com.topjohnwu.magisk.Global;
+import com.topjohnwu.magisk.MagiskManager;
 import com.topjohnwu.magisk.R;
-import com.topjohnwu.magisk.utils.Async;
+import com.topjohnwu.magisk.asyncs.FlashZIP;
+import com.topjohnwu.magisk.asyncs.SerialTask;
 import com.topjohnwu.magisk.utils.Shell;
 import com.topjohnwu.magisk.utils.ZipUtils;
 
@@ -23,7 +24,7 @@ public class MagiskDlReceiver extends DownloadReceiver {
 
     @Override
     public void onDownloadDone(Uri uri) {
-        new Async.FlashZIP(mContext, uri, mFilename) {
+        new FlashZIP(activity, uri, mFilename) {
 
             @Override
             protected void preProcessing() throws Throwable {
@@ -36,14 +37,14 @@ public class MagiskDlReceiver extends DownloadReceiver {
 
             @Override
             protected boolean unzipAndCheck() {
-                publishProgress(mContext.getString(R.string.zip_install_unzip_zip_msg));
+                publishProgress(activity.getString(R.string.zip_install_unzip_zip_msg));
                 if (Shell.rootAccess()) {
                     // We might not have busybox yet, unzip with Java
                     // We will have complete busybox after Magisk installation
                     ZipUtils.unzip(mCachedFile, new File(mCachedFile.getParent(), "magisk"));
                     Shell.su(
-                            "mkdir -p " + Async.TMP_FOLDER_PATH + "/magisk",
-                            "cp -af " + mCachedFile.getParent() + "/magisk/. " + Async.TMP_FOLDER_PATH + "/magisk",
+                            "mkdir -p " + MagiskManager.TMP_FOLDER_PATH + "/magisk",
+                            "cp -af " + mCachedFile.getParent() + "/magisk/. " + MagiskManager.TMP_FOLDER_PATH + "/magisk",
                             "mv -f " + mCachedFile.getParent() + "/magisk/META-INF " + mCachedFile.getParent() + "/META-INF"
                     );
                 }
@@ -52,11 +53,11 @@ public class MagiskDlReceiver extends DownloadReceiver {
 
             @Override
             protected void onSuccess() {
-                new Async.RootTask<Void, Void, Void>() {
+                new SerialTask<Void, Void, Void>() {
                     @Override
                     protected Void doInBackground(Void... params) {
                         Shell.su("setprop magisk.version "
-                                + String.valueOf(Global.Info.remoteMagiskVersion));
+                                + String.valueOf(((MagiskManager) activity.getApplicationContext()).remoteMagiskVersion));
                         return null;
                     }
                 }.exec();

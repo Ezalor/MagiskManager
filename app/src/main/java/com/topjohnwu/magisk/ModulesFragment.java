@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -15,10 +14,11 @@ import android.widget.TextView;
 
 import com.github.clans.fab.FloatingActionButton;
 import com.topjohnwu.magisk.adapters.ModulesAdapter;
+import com.topjohnwu.magisk.asyncs.FlashZIP;
+import com.topjohnwu.magisk.asyncs.LoadModules;
+import com.topjohnwu.magisk.components.Fragment;
 import com.topjohnwu.magisk.module.Module;
-import com.topjohnwu.magisk.module.ModuleHelper;
-import com.topjohnwu.magisk.utils.Async;
-import com.topjohnwu.magisk.utils.CallbackHandler;
+import com.topjohnwu.magisk.utils.CallbackEvent;
 import com.topjohnwu.magisk.utils.Logger;
 
 import java.util.ArrayList;
@@ -28,7 +28,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 
-public class ModulesFragment extends Fragment implements CallbackHandler.EventListener {
+public class ModulesFragment extends Fragment implements CallbackEvent.Listener<Void> {
 
     private static final int FETCH_ZIP_CODE = 2;
 
@@ -54,7 +54,7 @@ public class ModulesFragment extends Fragment implements CallbackHandler.EventLi
 
         mSwipeRefreshLayout.setOnRefreshListener(() -> {
             recyclerView.setVisibility(View.GONE);
-            new Async.LoadModules().exec();
+            new LoadModules(getActivity()).exec();
         });
 
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -69,7 +69,7 @@ public class ModulesFragment extends Fragment implements CallbackHandler.EventLi
             }
         });
 
-        if (Global.Events.moduleLoadDone.isTriggered) {
+        if (getApplication().moduleLoadDone.isTriggered) {
             updateUI();
         }
 
@@ -77,7 +77,7 @@ public class ModulesFragment extends Fragment implements CallbackHandler.EventLi
     }
 
     @Override
-    public void onTrigger(CallbackHandler.Event event) {
+    public void onTrigger(CallbackEvent<Void> event) {
         Logger.dev("ModulesFragment: UI refresh triggered");
         updateUI();
     }
@@ -87,7 +87,7 @@ public class ModulesFragment extends Fragment implements CallbackHandler.EventLi
         if (requestCode == FETCH_ZIP_CODE && resultCode == Activity.RESULT_OK && data != null) {
             // Get the URI of the selected file
             final Uri uri = data.getData();
-            new Async.FlashZIP(getActivity(), uri).exec();
+            new FlashZIP(getActivity(), uri).exec();
         }
 
     }
@@ -95,13 +95,13 @@ public class ModulesFragment extends Fragment implements CallbackHandler.EventLi
     @Override
     public void onStart() {
         super.onStart();
-        CallbackHandler.register(Global.Events.moduleLoadDone, this);
+        getApplication().moduleLoadDone.register(this);
         getActivity().setTitle(R.string.modules);
     }
 
     @Override
     public void onStop() {
-        CallbackHandler.unRegister(Global.Events.moduleLoadDone, this);
+        getApplication().moduleLoadDone.unRegister(this);
         super.onStop();
     }
 
@@ -112,7 +112,8 @@ public class ModulesFragment extends Fragment implements CallbackHandler.EventLi
     }
 
     private void updateUI() {
-        ModuleHelper.getModuleList(listModules);
+        listModules.clear();
+        listModules.addAll(getApplication().moduleMap.values());
         if (listModules.size() == 0) {
             emptyRv.setVisibility(View.VISIBLE);
             recyclerView.setVisibility(View.GONE);

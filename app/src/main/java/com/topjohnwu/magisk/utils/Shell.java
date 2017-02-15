@@ -15,16 +15,15 @@ public class Shell {
     // -1 = problematic/unknown issue; 0 = not rooted; 1 = properly rooted
     public static int rootStatus;
 
+    private static boolean isInit = false;
     private static Process rootShell;
     private static DataOutputStream rootSTDIN;
     private static StreamGobbler rootSTDOUT;
-    private static List<String> rootOutList = new ArrayList<>();
+    private static List<String> rootOutList = Collections.synchronizedList(new ArrayList<String>());
 
-    static {
-        init();
-    }
+    public static void init() {
 
-    private static void init() {
+        isInit = true;
 
         try {
             rootShell = Runtime.getRuntime().exec("su");
@@ -41,7 +40,7 @@ public class Shell {
 
         // Setup umask and PATH
         su("umask 022");
-        su("PATH=/data/busybox:$PATH");
+        su("PATH=`[ -e /dev/busybox ] && echo /dev/busybox || echo /data/busybox`:$PATH");
 
         List<String> ret = su("echo -BOC-", "id");
 
@@ -64,7 +63,7 @@ public class Shell {
     }
 
     public static boolean rootAccess() {
-        return rootStatus > 0;
+        return isInit && rootStatus > 0;
     }
 
     public static List<String> sh(String... commands) {
@@ -120,9 +119,12 @@ public class Shell {
         DataOutputStream STDIN;
         StreamGobbler STDOUT;
 
-        if (!rootAccess()) {
+        // Create the default shell if not init
+        if (!newShell && !isInit)
+            init();
+
+        if (!newShell && !rootAccess())
             return null;
-        }
 
         if (newShell) {
             res = Collections.synchronizedList(new ArrayList<String>());
@@ -130,6 +132,13 @@ public class Shell {
                 process = Runtime.getRuntime().exec("su");
                 STDIN = new DataOutputStream(process.getOutputStream());
                 STDOUT = new StreamGobbler(process.getInputStream(), res);
+
+                // Run the new shell with busybox and proper umask
+                STDIN.write(("umask 022\n").getBytes("UTF-8"));
+                STDIN.flush();
+                STDIN.write(("PATH=`[ -e /dev/busybox ] && echo /dev/busybox || " +
+                        "echo /data/busybox`:$PATH\n").getBytes("UTF-8"));
+                STDIN.flush();
             } catch (IOException err) {
                 return null;
             }

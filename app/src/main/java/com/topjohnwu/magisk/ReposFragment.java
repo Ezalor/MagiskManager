@@ -2,7 +2,6 @@ package com.topjohnwu.magisk;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.RecyclerView;
@@ -16,10 +15,12 @@ import android.widget.TextView;
 
 import com.topjohnwu.magisk.adapters.ReposAdapter;
 import com.topjohnwu.magisk.adapters.SimpleSectionedRecyclerViewAdapter;
-import com.topjohnwu.magisk.module.ModuleHelper;
+import com.topjohnwu.magisk.asyncs.LoadRepos;
+import com.topjohnwu.magisk.asyncs.ParallelTask;
+import com.topjohnwu.magisk.components.Fragment;
+import com.topjohnwu.magisk.module.Module;
 import com.topjohnwu.magisk.module.Repo;
-import com.topjohnwu.magisk.utils.Async;
-import com.topjohnwu.magisk.utils.CallbackHandler;
+import com.topjohnwu.magisk.utils.CallbackEvent;
 import com.topjohnwu.magisk.utils.Logger;
 
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 
-public class ReposFragment extends Fragment implements CallbackHandler.EventListener {
+public class ReposFragment extends Fragment implements CallbackEvent.Listener<Void> {
 
     private Unbinder unbinder;
     @BindView(R.id.recyclerView) RecyclerView recyclerView;
@@ -68,10 +69,10 @@ public class ReposFragment extends Fragment implements CallbackHandler.EventList
 
         mSwipeRefreshLayout.setOnRefreshListener(() -> {
             recyclerView.setVisibility(View.GONE);
-            new Async.LoadRepos(getActivity()).exec();
+            new LoadRepos(getActivity()).exec();
         });
 
-        if (Global.Events.repoLoadDone.isTriggered) {
+        if (getApplication().repoLoadDone.isTriggered) {
             reloadRepos();
             updateUI();
         }
@@ -93,7 +94,7 @@ public class ReposFragment extends Fragment implements CallbackHandler.EventList
     }
 
     @Override
-    public void onTrigger(CallbackHandler.Event event) {
+    public void onTrigger(CallbackEvent<Void> event) {
         Logger.dev("ReposFragment: UI refresh triggered");
         reloadRepos();
         updateUI();
@@ -109,13 +110,13 @@ public class ReposFragment extends Fragment implements CallbackHandler.EventList
     @Override
     public void onStart() {
         super.onStart();
-        CallbackHandler.register(Global.Events.repoLoadDone, this);
+        getApplication().repoLoadDone.register(this);
         getActivity().setTitle(R.string.downloads);
     }
 
     @Override
     public void onStop() {
-        CallbackHandler.unRegister(Global.Events.repoLoadDone, this);
+        getApplication().repoLoadDone.unRegister(this);
         super.onStop();
     }
 
@@ -126,7 +127,20 @@ public class ReposFragment extends Fragment implements CallbackHandler.EventList
     }
 
     private void reloadRepos() {
-        ModuleHelper.getRepoLists(mUpdateRepos, mInstalledRepos, mOthersRepos);
+        mUpdateRepos.clear();
+        mInstalledRepos.clear();
+        mOthersRepos.clear();
+        for (Repo repo : getApplication().repoMap.values()) {
+            Module module = getApplication().moduleMap.get(repo.getId());
+            if (module != null) {
+                if (repo.getVersionCode() > module.getVersionCode())
+                    mUpdateRepos.add(repo);
+                else
+                    mInstalledRepos.add(repo);
+            } else {
+                mOthersRepos.add(repo);
+            }
+        }
         fUpdateRepos.clear();
         fInstalledRepos.clear();
         fOthersRepos.clear();
@@ -158,7 +172,7 @@ public class ReposFragment extends Fragment implements CallbackHandler.EventList
         mSwipeRefreshLayout.setRefreshing(false);
     }
 
-    private class FilterApps extends Async.NormalTask<String, Void, Void> {
+    private class FilterApps extends ParallelTask<String, Void, Void> {
         @Override
         protected Void doInBackground(String... strings) {
             String newText = strings[0];

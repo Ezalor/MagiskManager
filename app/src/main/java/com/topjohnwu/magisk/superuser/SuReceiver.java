@@ -6,8 +6,10 @@ import android.content.Intent;
 import android.os.Process;
 import android.widget.Toast;
 
-import com.topjohnwu.magisk.Global;
+import com.topjohnwu.magisk.MagiskManager;
 import com.topjohnwu.magisk.R;
+import com.topjohnwu.magisk.database.SuDatabaseHelper;
+import com.topjohnwu.magisk.database.SuLogDatabaseHelper;
 
 import java.util.Date;
 
@@ -22,6 +24,8 @@ public class SuReceiver extends BroadcastReceiver {
         int fromUid, toUid, pid;
         String command, action;
         Policy policy;
+
+        MagiskManager magiskManager = (MagiskManager) context.getApplicationContext();
 
         if (intent == null) return;
 
@@ -40,26 +44,27 @@ public class SuReceiver extends BroadcastReceiver {
             return;
         }
 
-        Global.initSuConfigs(context);
+        magiskManager.initSuConfigs();
 
         SuLogEntry log = new SuLogEntry(policy);
 
-        if (policy.notification && Global.Configs.suNotificationType == TOAST) {
-            String message;
-            switch (action) {
-                case "allow":
-                    message = context.getString(R.string.su_allow_toast, policy.appName);
-                    log.action = true;
-                    break;
-                case "deny":
-                    message = context.getString(R.string.su_deny_toast, policy.appName);
-                    log.action = false;
-                    break;
-                default:
-                    return;
-            }
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+        String message;
+        switch (action) {
+            case "allow":
+                message = context.getString(R.string.su_allow_toast, policy.appName);
+                log.action = true;
+                break;
+            case "deny":
+                message = context.getString(R.string.su_deny_toast, policy.appName);
+                log.action = false;
+                break;
+            default:
+                return;
         }
+
+        if (policy.notification && magiskManager.suNotificationType == TOAST)
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+
         if (policy.logging) {
             toUid = intent.getIntExtra("to.uid", -1);
             if (toUid < 0) return;

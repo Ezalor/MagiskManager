@@ -1,13 +1,12 @@
 package com.topjohnwu.magisk;
 
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,8 +14,9 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.topjohnwu.magisk.utils.Async;
-import com.topjohnwu.magisk.utils.CallbackHandler;
+import com.topjohnwu.magisk.asyncs.CheckUpdates;
+import com.topjohnwu.magisk.components.Fragment;
+import com.topjohnwu.magisk.utils.CallbackEvent;
 import com.topjohnwu.magisk.utils.Logger;
 import com.topjohnwu.magisk.utils.Shell;
 import com.topjohnwu.magisk.utils.Utils;
@@ -26,7 +26,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 
-public class StatusFragment extends Fragment implements CallbackHandler.EventListener {
+public class StatusFragment extends Fragment implements CallbackEvent.Listener<Void> {
 
     private static boolean noDialog = false;
 
@@ -80,11 +80,11 @@ public class StatusFragment extends Fragment implements CallbackHandler.EventLis
             safetyNetStatusText.setText(R.string.safetyNet_check_text);
             safetyNetStatusText.setTextColor(defaultColor);
 
-            Global.Events.safetyNetDone.isTriggered = false;
+            getApplication().safetyNetDone.isTriggered = false;
             noDialog = false;
 
             updateUI();
-            new Async.CheckUpdates().exec();
+            new CheckUpdates(getActivity()).exec();
         });
 
         safetyNetContainer.setOnClickListener(view -> {
@@ -92,10 +92,10 @@ public class StatusFragment extends Fragment implements CallbackHandler.EventLis
             safetyNetContainer.setBackgroundColor(trans);
             safetyNetIcon.setImageResource(0);
             safetyNetStatusText.setText(R.string.checking_safetyNet_status);
-            Async.checkSafetyNet(getActivity());
+            Utils.checkSafetyNet(getApplication());
         });
 
-        if (Global.Info.magiskVersion < 0 && Shell.rootAccess() && !noDialog) {
+        if (getApplication().magiskVersion < 0 && Shell.rootAccess() && !noDialog) {
             noDialog = true;
             Utils.getAlertDialogBuilder(getActivity())
                     .setTitle(R.string.no_magisk_title)
@@ -104,7 +104,7 @@ public class StatusFragment extends Fragment implements CallbackHandler.EventLis
                     .setPositiveButton(R.string.goto_install, (dialogInterface, i) -> {
                         ((MainActivity) getActivity()).navigationView.setCheckedItem(R.id.install);
                         FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                        transaction.setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out);
+                        transaction.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
                         try {
                             transaction.replace(R.id.content_frame, new InstallFragment(), "install").commit();
                         } catch (IllegalStateException ignored) {}
@@ -115,15 +115,20 @@ public class StatusFragment extends Fragment implements CallbackHandler.EventLis
 
         updateUI();
 
+        if (getApplication().updateCheckDone.isTriggered)
+            updateCheckUI();
+        if (getApplication().safetyNetDone.isTriggered)
+            updateSafetyNetUI();
+
         return v;
     }
 
     @Override
-    public void onTrigger(CallbackHandler.Event event) {
-        if (event == Global.Events.updateCheckDone) {
+    public void onTrigger(CallbackEvent<Void> event) {
+        if (event == getApplication().updateCheckDone) {
             Logger.dev("StatusFragment: Update Check UI refresh triggered");
             updateCheckUI();
-        } else if (event == Global.Events.safetyNetDone) {
+        } else if (event == getApplication().safetyNetDone) {
             Logger.dev("StatusFragment: SafetyNet UI refresh triggered");
             updateSafetyNetUI();
         }
@@ -132,21 +137,15 @@ public class StatusFragment extends Fragment implements CallbackHandler.EventLis
     @Override
     public void onStart() {
         super.onStart();
-        CallbackHandler.register(Global.Events.updateCheckDone, this);
-        CallbackHandler.register(Global.Events.safetyNetDone, this);
-        if (Global.Events.updateCheckDone.isTriggered) {
-            updateCheckUI();
-        }
-        if (Global.Events.safetyNetDone.isTriggered) {
-            updateSafetyNetUI();
-        }
+        getApplication().updateCheckDone.register(this);
+        getApplication().safetyNetDone.register(this);
         getActivity().setTitle(R.string.status);
     }
 
     @Override
     public void onStop() {
-        CallbackHandler.unRegister(Global.Events.updateCheckDone, this);
-        CallbackHandler.unRegister(Global.Events.safetyNetDone, this);
+        getApplication().updateCheckDone.unRegister(this);
+        getApplication().safetyNetDone.unRegister(this);
         super.onStop();
     }
 
@@ -159,12 +158,14 @@ public class StatusFragment extends Fragment implements CallbackHandler.EventLis
     private void updateUI() {
         int image, color;
 
-        Global.updateMagiskInfo();
+        getApplication().updateMagiskInfo();
 
-        if (Global.Info.magiskVersion < 0) {
+        if (getApplication().magiskVersion < 0) {
             magiskVersionText.setText(R.string.magisk_version_error);
+        } else if (getApplication().disabled) {
+            magiskVersionText.setText(getString(R.string.magisk_version_disable, getApplication().magiskVersionString));
         } else {
-            magiskVersionText.setText(getString(R.string.magisk_version, Global.Info.magiskVersionString));
+            magiskVersionText.setText(getString(R.string.magisk_version, getApplication().magiskVersionString));
         }
 
         switch (Shell.rootStatus) {
@@ -175,11 +176,11 @@ public class StatusFragment extends Fragment implements CallbackHandler.EventLis
                 rootInfoText.setText(R.string.root_info_warning);
                 break;
             case 1:
-                if (Global.Info.suVersion != null) {
+                if (getApplication().suVersion != null) {
                     color = colorOK;
                     image = R.drawable.ic_check_circle;
                     rootStatusText.setText(R.string.proper_root);
-                    rootInfoText.setText(Global.Info.suVersion);
+                    rootInfoText.setText(getApplication().suVersion);
                     break;
                 }
             case -1:
@@ -198,24 +199,28 @@ public class StatusFragment extends Fragment implements CallbackHandler.EventLis
     private void updateCheckUI() {
         int image, color;
 
-        if (Global.Info.remoteMagiskVersion < 0) {
+        if (getApplication().remoteMagiskVersion < 0) {
             color = colorNeutral;
             image = R.drawable.ic_help;
             magiskUpdateText.setText(R.string.cannot_check_updates);
-        } else if (Global.Info.remoteMagiskVersion > Global.Info.magiskVersion) {
+        } else if (getApplication().remoteMagiskVersion > getApplication().magiskVersion) {
             color = colorInfo;
             image = R.drawable.ic_update;
-            magiskUpdateText.setText(getString(R.string.magisk_update_available, Global.Info.remoteMagiskVersion));
+            magiskUpdateText.setText(getString(R.string.magisk_update_available, getApplication().remoteMagiskVersion));
         } else {
             color = colorOK;
             image = R.drawable.ic_check_circle;
             magiskUpdateText.setText(getString(R.string.up_to_date, getString(R.string.magisk)));
         }
 
-        if (Global.Info.magiskVersion < 0) {
+        if (getApplication().magiskVersion < 0) {
             color = colorBad;
             image = R.drawable.ic_cancel;
+        } else if (getApplication().disabled) {
+            color = colorNeutral;
+            image = R.drawable.ic_cancel;
         }
+
         magiskStatusContainer.setBackgroundColor(color);
         magiskVersionText.setTextColor(color);
         magiskUpdateText.setTextColor(color);
@@ -226,23 +231,23 @@ public class StatusFragment extends Fragment implements CallbackHandler.EventLis
 
         updateMagisk = Utils.getAlertDialogBuilder(getActivity())
                 .setTitle(R.string.magisk_update_title)
-                .setMessage(getString(R.string.magisk_update_message, Global.Info.remoteMagiskVersion))
+                .setMessage(getString(R.string.magisk_update_message, getApplication().remoteMagiskVersion))
                 .setCancelable(true)
                 .setPositiveButton(R.string.goto_install, (dialogInterface, i) -> {
                     ((MainActivity) getActivity()).navigationView.setCheckedItem(R.id.install);
                     FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                    transaction.setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out);
+                    transaction.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
                     try {
                         transaction.replace(R.id.content_frame, new InstallFragment(), "install").commit();
                     } catch (IllegalStateException ignored) {}
                 })
                 .setNeutralButton(R.string.check_release_notes, (dialog, which) -> {
-                    getActivity().startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Global.Info.releaseNoteLink)));
+                    getActivity().startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(getApplication().releaseNoteLink)));
                 })
                 .setNegativeButton(R.string.no_thanks, null)
                 .create();
 
-        if (Global.Info.magiskVersion < Global.Info.remoteMagiskVersion && Shell.rootAccess()) {
+        if (getApplication().magiskVersion < getApplication().remoteMagiskVersion && Shell.rootAccess()) {
             magiskStatusContainer.setOnClickListener(view -> updateMagisk.show());
             if (!noDialog) {
                 noDialog = true;
@@ -254,7 +259,7 @@ public class StatusFragment extends Fragment implements CallbackHandler.EventLis
     private void updateSafetyNetUI() {
         int image, color;
         safetyNetProgress.setVisibility(View.GONE);
-        switch (Global.Info.SNCheckResult) {
+        switch (getApplication().SNCheckResult) {
             case -3:
                 color = colorNeutral;
                 image = R.drawable.ic_help;
