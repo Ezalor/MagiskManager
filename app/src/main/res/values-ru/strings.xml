@@ -2,7 +2,6 @@
     <!--Welcome Activity-->
     <string name="navigation_drawer_open">Открыть меню навигации</string>
     <string name="navigation_drawer_close">Закрыть меню навигации</string>
-    <string name="magiskhide">Magisk Hide</string>
     <string name="modules">Модули</string>
     <string name="downloads">Загрузки</string>
     <string name="superuser">Суперпользователь</string>
@@ -33,7 +32,7 @@
     <string name="root_info_warning">Функциональность значительно ограничена</string>
 
     <!--Install Fragment-->
-    <string name="auto_detect">"(Авто) %1$s"</string>
+    <string name="auto_detect">(Авто) %1$s</string>
     <string name="boot_image_title">Местоположение образа Boot</string>
     <string name="detect_button">Определить</string>
     <string name="advanced_settings_title">Дополнительные настройки</string>
@@ -59,7 +58,6 @@
     <string name="update_available">Доступно обновление</string>
     <string name="installed">Установлен</string>
     <string name="not_installed">Не установлен</string>
-    <string name="changelog">Изменения</string>
 
     <!--Log Fragment-->
     <string name="menuSaveToSd">Сохранить на SD-карту</string>
@@ -91,24 +89,22 @@
     <string name="goto_install">Перейти в раздел «Установка»</string>
     <string name="download_file_error">Ошибка при скачивании файла</string>
     <string name="install_error">Ошибка при установке!</string>
-    <string name="manual_install_1">Zip-файл помещён в %1$s</string>
-    <string name="manual_install_2">Прошейте руками через рекавери</string>а
+    а
     <string name="invalid_zip">Этот архив не содержит модуль Magisk!!</string>
     <string name="reboot_title">Установка успешна!</string>
     <string name="reboot_msg">Вы хотите перезагрузиться?</string>
     <string name="reboot">Перезагрузка</string>
     <string name="copying_msg">Копирование архива во временную директорию</string>
     <string name="zip_install_progress_title">Установка</string>
-    <string name="zip_install_unzip_zip_msg">Распаковка zip-файла…</string>
-    <string name="zip_install_process_zip_msg">Обработка zip-файла…</string>
-    <string name="zip_install_progress_msg">"Установка %1$s…"</string>
+    <string name="zip_unzip_msg">Распаковка zip-файла…</string>
+    <string name="zip_process_msg">Обработка zip-файла…</string>
+    <string name="zip_install_progress_msg">Установка %1$s…</string>
     <string name="no_magisk_title">Magisk не установлен!</string>
     <string name="no_magisk_msg">Вы хотите скачать и установить Magisk?</string>
     <string name="downloading_toast">Скачивание %1$s</string>
     <string name="magisk_update_title">Доступно обновление Magisk!</string>
-    <string name="magisk_update_message">Вышел Magisk версии v%1$.1f, установить?</string>
     <string name="settings_reboot_toast">Перезагрузитесь для применения изменений</string>
-    <string name="check_release_notes">Посмотреть примечания к выпуску</string>
+    <string name="release_notes">Примечания к выпуску</string>
     <string name="repo_cache_cleared">Кэш репозиториев очищен</string>
     <string name="safetyNet_hide_notice">Это приложение использует SafetyNet\nУже обработано MagiskHide по умолчанию</string>
     <string name="start_magiskhide">Запуск MagiskHide…</string>

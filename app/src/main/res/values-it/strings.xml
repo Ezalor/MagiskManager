@@ -4,7 +4,6 @@
     <!--Welcome Activity-->
     <string name="navigation_drawer_open">Apri drawer di navigazione</string>
     <string name="navigation_drawer_close">Chiudi drawer di navigazione</string>
-    <string name="magiskhide">Magisk Hide</string>
     <string name="modules">Moduli</string>
     <string name="downloads">Downloads</string>
     <string name="log">Log</string>
@@ -35,7 +34,7 @@
         
     
         <!--Install Fragment-->
-    <string name="auto_detect">"(Auto) %1$s"</string>
+    <string name="auto_detect">(Auto) %1$s</string>
     <string name="boot_image_title">Boot Image</string>
     <string name="detect_button">Identifica</string>
     <string name="advanced_settings_title">Impostazioni Avanzate</string>
@@ -60,7 +59,6 @@
     <string name="update_available">Aggiornamento disponibile</string>
     <string name="installed">Installato</string>
     <string name="not_installed">Non installato</string>
-    <string name="changelog">Changelog</string>
 
     <!--Log Fragment-->
     <string name="menuSaveToSd">Salva nella SD</string>
@@ -90,13 +88,12 @@
     <string name="download_install">Scarica e installa</string>
     <string name="download_file_error">Errore nel download del file</string>
     <string name="install_error">Errore di installazione!</string>
-    <string name="manual_install_1">Errore nel flash del file, il file zip è in %1$s\nFlash esegui il flash manuale</string>
     <string name="invalid_zip">Lo zip non è un Modulo Magisk!!</string>
     <string name="reboot_title">Installazione completata</string>
     <string name="reboot_msg">Vuoi riavviare ora?</string>
     <string name="reboot">Riavvia</string>
     <string name="zip_install_progress_title">Installazione</string>
-    <string name="zip_install_progress_msg">"Installazione %1$s …"</string>
+    <string name="zip_install_progress_msg">Installazione %1$s …</string>
     <string name="no_magisk_title">Magisk non installato!</string>
     <string name="no_magisk_msg">Vuoi scaricare ed installare Magisk?</string>
 

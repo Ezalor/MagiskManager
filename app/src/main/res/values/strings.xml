@@ -6,7 +6,7 @@
     <!--Welcome Activity-->
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="magiskhide">Magisk Hide</string>
+    <string name="magiskhide" translatable="false">Magisk Hide</string>
     <string name="modules">Modules</string>
     <string name="downloads">Downloads</string>
     <string name="superuser">Superuser</string>
@@ -37,7 +37,7 @@
     <string name="root_info_warning">Functionality greatly limited</string>
 
     <!--Install Fragment-->
-    <string name="auto_detect">"(Auto) %1$s"</string>
+    <string name="auto_detect">(Auto) %1$s</string>
     <string name="boot_image_title">Boot Image Location</string>
     <string name="detect_button">Detect</string>
     <string name="advanced_settings_title">Advanced Settings</string>
@@ -45,9 +45,10 @@
     <string name="keep_dm_verity">Keep dm-verity</string>
     <string name="current_magisk_title">Installed Magisk Version: v%1$s</string>
     <string name="install_magisk_title">Latest Magisk Version: v%1$.1f</string>
-    <string name="magiskify" translatable="false">Magiskify</string>
     <string name="uninstall">Uninstall</string>
     <string name="reboot_countdown">Rebooting in %1$d</string>
+    <string name="uninstall_magisk_title">Uninstall Magisk</string>
+    <string name="uninstall_magisk_msg">This will remove all modules, MagiskSU, and potentially encrypt your data if not encrypted\nAre you sure to continue?</string>
 
     <!--Module Fragment-->
     <string name="no_info_provided">(No info provided)</string>
@@ -64,7 +65,6 @@
     <string name="update_available">Update Available</string>
     <string name="installed">Installed</string>
     <string name="not_installed">Not Installed</string>
-    <string name="changelog">Changelog</string>
 
     <!--Log Fragment-->
     <string name="menuSaveToSd">Save to SD</string>
@@ -91,30 +91,29 @@
     <string name="no_thanks">No thanks</string>
     <string name="yes">Yes</string>
     <string name="ok">OK</string>
+    <string name="close">Close</string>
     <string name="repo_install_title">Install %1$s</string>
     <string name="repo_install_msg">Do you want to install %1$s ?</string>
-    <string name="download_install">Download &amp; install</string>
+    <string name="download_install">Download &amp; Install</string>
+    <string name="download">Download</string>
     <string name="goto_install">Go to \"Install\" section</string>
     <string name="download_file_error">Error downloading file</string>
     <string name="install_error">Installation error!</string>
-    <string name="manual_install_1">Zip file placed in %1$s</string>
-    <string name="manual_install_2">Flash it in recovery manually</string>
     <string name="invalid_zip">The zip is not a Magisk Module!!</string>
     <string name="reboot_title">Installation succeeded!</string>
     <string name="reboot_msg">Do you want to reboot now?</string>
     <string name="reboot">Reboot</string>
     <string name="copying_msg">Copying zip to temp directory</string>
     <string name="zip_install_progress_title">Installing</string>
-    <string name="zip_install_unzip_zip_msg">Unzipping zip file …</string>
-    <string name="zip_install_process_zip_msg">Processing zip file …</string>
-    <string name="zip_install_progress_msg">"Installing %1$s …"</string>
+    <string name="zip_unzip_msg">Unzipping zip file …</string>
+    <string name="zip_process_msg">Processing zip file …</string>
+    <string name="zip_install_progress_msg">Installing %1$s …</string>
     <string name="no_magisk_title">No Magisk Installed!</string>
     <string name="no_magisk_msg">Do you want to download and install Magisk?</string>
     <string name="downloading_toast">Downloading %1$s</string>
     <string name="magisk_update_title">New Magisk Update Available!</string>
-    <string name="magisk_update_message">Magisk v%1$.1f update is live, do you want to install?</string>
     <string name="settings_reboot_toast">Reboot to apply settings</string>
-    <string name="check_release_notes">Check release notes</string>
+    <string name="release_notes">Release notes</string>
     <string name="repo_cache_cleared">Repo cache cleared</string>
     <string name="safetyNet_hide_notice">This app uses SafetyNet\nAlready handled by MagiskHide by default</string>
     <string name="start_magiskhide">Starting MagiskHide …</string>
@@ -123,6 +122,7 @@
     <string name="understand">I understand</string>
     <string name="process_error">Process error</string>
     <string name="internal_storage">The zip is stored in:\n[Internal Storage]%1$s</string>
+    <string name="zip_process_title">Processing</string>
 
     <!--Settings Activity -->
     <string name="settings_general_category">General</string>

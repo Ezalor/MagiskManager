@@ -4,7 +4,6 @@
     <!--Welcome Activity-->
     <string name="navigation_drawer_open">فتح درج التنقل</string>
     <string name="navigation_drawer_close">إغلاق درج التنقل</string>
-    <string name="magiskhide">Magisk إخفاء</string>
     <string name="modules">الإضافات</string>
     <string name="downloads">التنزيلات</string>
     <string name="log">السجل</string>
@@ -35,7 +34,6 @@
     <string name="update_available">يتوفر تحديث</string>
     <string name="installed">مثبت</string>
     <string name="not_installed">غير مثبت</string>
-    <string name="changelog">التغييرات</string>
 
     <!--Log Fragment-->
     <string name="menuSaveToSd">حفظ إلى بطاقة ذاكرة SD</string>
@@ -65,16 +63,14 @@
     <string name="download_install">تنزيل وتثبيت</string>
     <string name="download_file_error">خطأ تنزيل الملف</string>
     <string name="install_error">خطأ في التثبيت!</string>
-    <string name="manual_install_1">الملف المضغوط وضع في %1$s</string>
-    <string name="manual_install_2">التثبيت في الإسترداد يدوياً</string>
     <string name="invalid_zip">الملف المضغوط ليس إضافة Magisk!!</string>
     <string name="reboot_title">التثبيت نجح!</string>
     <string name="reboot_msg">هل تريد إعادة التشغيل الآن؟</string>
     <string name="reboot">إعادة التشغيل</string>
     <string name="zip_install_progress_title">تثبيت</string>
-    <string name="zip_install_unzip_zip_msg">فك الضغط عن الملف المضغوط …</string>
-    <string name="zip_install_process_zip_msg">معالجة الملف المضغوط …</string>
-    <string name="zip_install_progress_msg">"تثبيت %1$s …"</string>
+    <string name="zip_unzip_msg">فك الضغط عن الملف المضغوط …</string>
+    <string name="zip_process_msg">معالجة الملف المضغوط …</string>
+    <string name="zip_install_progress_msg">تثبيت %1$s …</string>
     <string name="no_magisk_title">لا يوجد Magisk مثبت!</string>
     <string name="no_magisk_msg">هل ترغب في تنزيل وتثبيت Magisk؟</string>
 
@@ -98,7 +94,7 @@
     <string name="settings_shell_logging_summary">حدد هذا الخيار لتمكين سجل جميع الأوامر الدفعية والمخرجات</string>
 
     <string name="settings_reboot_toast">إعادة التشغيل لتطبيق الإعدادات</string>
-    <string name="auto_detect">\"(تلقائي) %1$s\"</string>
+    <string name="auto_detect">(تلقائي) %1$s</string>
     <string name="checking_for_updates">البحث عن تحديثات…</string>
     <string name="install">التثبيت</string>
     <string name="not_rooted">غير مروت</string>

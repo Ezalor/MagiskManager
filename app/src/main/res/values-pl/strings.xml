@@ -6,7 +6,6 @@
     <!--Welcome Activity-->
     <string name="navigation_drawer_open">Otwórz szufladę nawigacji</string>
     <string name="navigation_drawer_close">Zamknij szufladę nawigacji</string>
-    <string name="magiskhide">Magisk Hide</string>
     <string name="modules">Moduły</string>
     <string name="downloads">Pobieranie</string>
     <string name="superuser">Superuser</string>
@@ -25,7 +24,7 @@
     <string name="cannot_check_updates">Nie można sprawdzić dostępności aktualizacji, brak internetu</string>
     <string name="up_to_date">Zainstalowana najnowsza wersja %1$s</string>
     <string name="root_error">Root dostępny, ale dostęp nie przyznany</string>
-    <string name="not_rooted">Nie wykryto Roota</string>
+    <string name="not_rooted">Brak Roota</string>
     <string name="proper_root">Root Dostępny</string>
     <string name="safetyNet_check_text">Dotknij aby sprawdzić SafetyNet</string>
     <string name="checking_safetyNet_status">Sprawdzanie statusu SafetyNet…</string>
@@ -37,7 +36,7 @@
     <string name="root_info_warning">Funkcjonalność znacznie ograniczona</string>
 
     <!--Install Fragment-->
-    <string name="auto_detect">"(Auto) %1$s"</string>
+    <string name="auto_detect">(Auto) %1$s</string>
     <string name="boot_image_title">Lokalizacja Boot Image</string>
     <string name="detect_button">Wykryj</string>
     <string name="advanced_settings_title">Zaawansowane Ustawienia</string>
@@ -57,14 +56,13 @@
     <string name="remove_file_deleted">Moduł nie zostanie usunięty podczas następnego restartu</string>
     <string name="disable_file_created">Moduł zostanie wyłączony przy następnym restarcie</string>
     <string name="disable_file_removed">Moduł zostanie włączony przy następnym restarcie</string>
-    <string name="author">Autor modu: %1$s</string>
+    <string name="author">Autor: %1$s</string>
     <string name="fab_flash_zip">Zainstaluj Moduł Zip</string>
 
     <!--Repo Fragment-->
     <string name="update_available">Aktualizacja jest dostępna</string>
     <string name="installed">Zainstalowany</string>
     <string name="not_installed">Nie zainstalowany</string>
-    <string name="changelog">Zmiany</string>
 
     <!--Log Fragment-->
     <string name="menuSaveToSd">Zapisz na SD</string>
@@ -90,42 +88,40 @@
     <string name="permissionNotGranted">Ta funkcja nie będzie działać bez uprawnień do zapisu na pamięci zewnętrznej.</string>
     <string name="no_thanks">Nie dziękuję</string>
     <string name="yes">Tak</string>
+    <string name="ok">OK</string>
+    <string name="close">Zamknij</string>
     <string name="repo_install_title">Zainstaluj %1$s</string>
     <string name="repo_install_msg">Czy chcesz zainstalować  %1$s ?</string>
     <string name="download_install">Pobierz i zainstaluj</string>
+    <string name="download">Pobierz</string>
     <string name="goto_install">Idź do sekcji \"Instalacja\"</string>
     <string name="download_file_error">Błąd pobierania pliku</string>
     <string name="install_error">Błąd instalacji!</string>
-    <string name="manual_install_1">Plik zip umieszczony w %1$s</string>
-    <string name="manual_install_2">Zainstaluj go ręcznie w recovery</string>
     <string name="invalid_zip">Ten zip nie jest Modułem Magisk!!</string>
     <string name="reboot_title">Instalacja zakończona powodzeniem!</string>
     <string name="reboot_msg">Czy chcesz teraz ponownie uruchomić?</string>
     <string name="reboot">Restart</string>
     <string name="copying_msg">Kopiowanie zip do katalogu temp</string>
     <string name="zip_install_progress_title">Instalacja</string>
-    <string name="zip_install_unzip_zip_msg">Rozpakowywanie pliku zip …</string>
-    <string name="zip_install_process_zip_msg">Przetwarzanie pliku zip …</string>
-    <string name="zip_install_progress_msg">"Instalowanie %1$s …"</string>
+    <string name="zip_unzip_msg">Rozpakowywanie pliku zip …</string>
+    <string name="zip_process_msg">Przetwarzanie pliku zip …</string>
+    <string name="zip_install_progress_msg">Instalowanie %1$s …</string>
     <string name="no_magisk_title">Brak zainstalowanego Magisk!</string>
     <string name="no_magisk_msg">Chcesz pobrać i zainstalować Magisk?</string>
     <string name="downloading_toast">Pobieranie %1$s</string>
     <string name="magisk_update_title">Nowa Wersja Magisk Dostępna!</string>
-    <string name="magisk_update_message">Magisk v%1$.1f jest dostępny, chcesz zainstalować?</string>
     <string name="settings_reboot_toast">Uruchom ponownie, aby zastosować ustawienia</string>
-    <string name="check_release_notes">Sprawdź zmiany</string>
+    <string name="release_notes">Zmiany</string>
     <string name="repo_cache_cleared">Cache repozytorium wyczyszczone</string>
     <string name="safetyNet_hide_notice">Ta aplikacja wykorzystuje SafetyNet\nJest już domyślnie obsługiwana przez MagiskHide</string>
     <string name="start_magiskhide">Uruchamianie MagiskHide …</string>
     <string name="no_magisksu_title">Nie Używaj MagiskSU!</string>
     <string name="no_magisksu_msg">Jeśli nie masz roota z MagiskSU, używanie samego MagiskHide może nie wystarczyć! Inne metody nie są oficjalnie obsługiwane. Do poprawnego działania SaftyNet potrzebne będą dodatkowe narzędzia (np suhide)</string>
     <string name="understand">Rozumiem</string>
-    
-	<!--URL Templates-->
-    
-    
-    
-    
+    <string name="process_error">Błąd procesu</string>
+    <string name="internal_storage">Zip jest przechowywany w:\n[Pamięć Wewnętrzna]%1$s</string>
+    <string name="zip_process_title">Przetwarzanie</string>
+	
     <!--Settings Activity -->
     <string name="settings_general_category">Ogólne</string>
     <string name="settings_dark_theme_title">Ciemny Motyw</string>
