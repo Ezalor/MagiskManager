@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group
+        android:checkableBehavior="single"
+        android:id="@+id/main_group">
+
+        <item
+            android:id="@+id/status"
+            android:icon="@drawable/ic_device_information"
+            android:title="@string/status"/>
+
+        <item
+            android:id="@+id/install"
+            android:icon="@drawable/ic_magisk"
+            android:title="@string/install"
+            android:visible="false"/>
+
+        <item
+            android:id="@+id/superuser"
+            android:icon="@drawable/ic_superuser"
+            android:title="@string/superuser"
+            android:visible="false"/>
+
+    </group>
+
+    <group
+        android:checkableBehavior="single"
+        android:id="@+id/second_group">
+
+        <item
+            android:id="@+id/modules"
+            android:icon="@drawable/ic_extension"
+            android:title="@string/modules"/>
+
+        <item
+            android:id="@+id/downloads"
+            android:icon="@drawable/ic_cloud_download"
+            android:title="@string/downloads"/>
+
+        <item
+            android:id="@+id/magiskhide"
+            android:icon="@drawable/ic_autoroot"
+            android:title="@string/magiskhide"/>
+
+        <item
+            android:id="@+id/log"
+            android:icon="@drawable/ic_bug_report"
+            android:title="@string/log"/>
+
+    </group>
+
+    <group
+        android:checkableBehavior="none"
+        android:id="@+id/third_group">
+
+        <item
+            android:id="@+id/settings"
+            android:icon="@drawable/ic_settings"
+            android:title="@string/settings"/>
+
+        <item
+            android:id="@+id/app_about"
+            android:icon="@drawable/ic_info_outline"
+            android:title="@string/about"/>
+
+    </group>
+
+</menu>

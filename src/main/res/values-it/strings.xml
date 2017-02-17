@@ -1,0 +1,123 @@
+<resources>
+    <!--Universal-->
+
+    <!--Welcome Activity-->
+    <string name="navigation_drawer_open">Apri drawer di navigazione</string>
+    <string name="navigation_drawer_close">Chiudi drawer di navigazione</string>
+    <string name="modules">Moduli</string>
+    <string name="downloads">Downloads</string>
+    <string name="log">Log</string>
+    <string name="settings">Impostazioni</string>
+    <string name="superuser">Superuser</string>
+    <string name="status">Stato</string>
+    <string name="install">Installa</string>
+
+     <!--Status Fragment-->
+    
+    <string name="magisk_version">Versione Magisk: v%1$s</string>
+    <string name="magisk_version_error">Hai installato Magisk?</string>
+    <string name="checking_for_updates">Controlla aggiornamenti…</string>
+    <string name="magisk_update_available">Magisk v%1$.1f update!</string>
+    <string name="cannot_check_updates">Impossibile controllare aggiornamenti</string>
+    <string name="up_to_date">L\'ultima versione di %1$s è installata</string>
+    <string name="root_error">Rootato ma senza permessi, non autorizzato?</string>
+    <string name="not_rooted">Non rootato</string>
+    <string name="proper_root">Rootato correttamente</string>
+    <string name="safetyNet_check_text">Tap per avviare controllo SafetyNet</string>
+    <string name="checking_safetyNet_status">Controllo SafetyNet</string>
+    <string name="safetyNet_connection_failed">Impossibile collegarsi alle API Google</string>
+    <string name="safetyNet_connection_suspended">Connessione alle API Google sospesa</string>
+    <string name="safetyNet_error">Impossibile controllare SafetyNet, no Internet?</string>
+    <string name="safetyNet_fail">Errore SafetyNet: il profilo CTS non corrisponde</string>
+    <string name="safetyNet_pass">SafetyNet corretto</string>
+    <string name="root_info_warning">Funzionalità molto limitata</string>
+        
+    
+        <!--Install Fragment-->
+    <string name="auto_detect">(Auto) %1$s</string>
+    <string name="boot_image_title">Boot Image</string>
+    <string name="detect_button">Identifica</string>
+    <string name="advanced_settings_title">Impostazioni Avanzate</string>
+    <string name="keep_force_encryption">Mantieni crittografia forzata</string>
+    <string name="keep_dm_verity">Mantieni dm-verity</string>
+    <string name="current_magisk_title">Versione Magisk installata: v%1$s</string>
+    <string name="install_magisk_title">Ultima versione Magisk: v%1$.1f</string>
+
+
+    <!--Module Fragment-->
+    <string name="no_info_provided">(Nessuna informazione)</string>
+    <string name="no_modules_found">Nessun modulo trovato</string>
+    <string name="update_file_created">Il modulo sarà aggiornato al prossimo riavvio</string>
+    <string name="remove_file_created">Il modulo sarà rimosso al prossimo riavvio</string>
+    <string name="remove_file_deleted">Il modulo non sarà rimosso al prossimo riavvio</string>
+    <string name="disable_file_created">Il modulo sarà disattivato al prossimo riavvio</string>
+    <string name="disable_file_removed">Il modulo sarà abilitato al prossimo riavvio</string>
+    <string name="author">Creato da:  %1$s</string>
+    <string name="fab_flash_zip">Flash Modulo Zip</string>
+    
+    <!--Repo Fragment-->
+    <string name="update_available">Aggiornamento disponibile</string>
+    <string name="installed">Installato</string>
+    <string name="not_installed">Non installato</string>
+
+    <!--Log Fragment-->
+    <string name="menuSaveToSd">Salva nella SD</string>
+    <string name="menuReload">Ricarica</string>
+    <string name="menuClearLog">Cancella log</string>
+    <string name="logs_cleared">Log creato con successo</string>
+    <string name="log_is_empty">Il log è vuoto</string>
+    <string name="logs_save_failed">Impossibile scrivere il log sulla SD</string>
+
+    <!--About Activity-->
+    <string name="about">Informazioni</string>
+    <string name="app_developers">Sviluppatori</string>
+    <string name="app_developers_"><![CDATA[App creata da <a href="https://github.com/topjohnwu">topjohnwu</a> in collaborazione con <a href="https://github.com/d8ahazard">Digitalhigh</a> e <a href="https://github.com/dvdandroid">Dvdandroid</a>.]]></string>
+    <string name="app_changelog">Changelog</string>
+    <string name="translators">Fabb2303</string>
+    <string name="app_version">Versione App</string>
+    <string name="app_source_code">Codice sorgente</string>
+    <string name="donation">Donazione</string>
+    <string name="app_translators">Traduttori App</string>
+    <string name="support_thread">Thread di supporto</string>
+
+    <!--Toasts, Dialogs-->
+    <string name="permissionNotGranted">Questa funzione non funziona senza il permesso di scrivere sulla memoria di archiviazione esterna</string>
+    <string name="no_thanks">No grazie</string>
+    <string name="repo_install_title">Installazione %1$s</string>
+    <string name="repo_install_msg">Vuoi installare %1$s ?</string>
+    <string name="download_install">Scarica e installa</string>
+    <string name="download_file_error">Errore nel download del file</string>
+    <string name="install_error">Errore di installazione!</string>
+    <string name="invalid_zip">Lo zip non è un Modulo Magisk!!</string>
+    <string name="reboot_title">Installazione completata</string>
+    <string name="reboot_msg">Vuoi riavviare ora?</string>
+    <string name="reboot">Riavvia</string>
+    <string name="zip_install_progress_title">Installazione</string>
+    <string name="zip_install_progress_msg">Installazione %1$s …</string>
+    <string name="no_magisk_title">Magisk non installato!</string>
+    <string name="no_magisk_msg">Vuoi scaricare ed installare Magisk?</string>
+
+    <!--URL Templates-->
+
+    <!--Settings Fragment -->
+    <string name="settings_general_category">Generali</string>
+    <string name="settings_dark_theme_title">Tema</string>
+    <string name="settings_dark_theme_summary">Scegli un tema</string>
+
+    <string name="settings_busybox_title">Abilita BusyBox</string>
+
+    <string name="settings_development_category">Development</string>
+    <string name="settings_developer_logging_title">Abilita Debug log avanzato</string>
+    <string name="settings_developer_logging_summary">Abilita questa funzione per avere un log più dettagliato.</string>
+    <string name="settings_shell_logging_title">Abilita shell di registrazione dei comandi di debug</string>
+    <string name="settings_shell_logging_summary">Abilita questa funzione per abilitare la registrazione tutti i comandi e l\'output della shell</string>
+
+    <!-- Strings related to Settings -->
+
+    <!-- Example General settings -->
+
+    <!-- Example settings for Data & Sync -->
+
+    <!-- Example settings for Notifications -->
+
+</resources>

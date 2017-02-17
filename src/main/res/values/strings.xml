@@ -1,0 +1,195 @@
+<resources>
+    <!--Universal-->
+    <string name="app_name" translatable="false">Magisk Manager</string>
+    <string name="magisk" translatable="false">Magisk</string>
+
+    <!--Welcome Activity-->
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="magiskhide" translatable="false">Magisk Hide</string>
+    <string name="modules">Modules</string>
+    <string name="downloads">Downloads</string>
+    <string name="superuser">Superuser</string>
+    <string name="log">Log</string>
+    <string name="settings">Settings</string>
+    <string name="status">Status</string>
+    <string name="install">Install</string>
+
+    <!--Status Fragment-->
+    <string name="magisk_version">Installed Magisk v%1$s</string>
+    <string name="magisk_version_disable">Magisk v%1$s disabled</string>
+    <string name="magisk_version_error">Magisk not installed</string>
+
+    <string name="checking_for_updates">Checking for updates…</string>
+    <string name="magisk_update_available">Magisk v%1$.1f available!</string>
+    <string name="cannot_check_updates">Cannot check for updates, no Internet?</string>
+    <string name="up_to_date">Latest version of %1$s installed</string>
+    <string name="root_error">Rooted but no root permission, not allowed?</string>
+    <string name="not_rooted">Not rooted</string>
+    <string name="proper_root">Properly rooted</string>
+    <string name="safetyNet_check_text">Tap to start SafetyNet check</string>
+    <string name="checking_safetyNet_status">Checking SafetyNet status…</string>
+    <string name="safetyNet_connection_failed">Cannot connect to Google API</string>
+    <string name="safetyNet_connection_suspended">Connection to Google API was suspended</string>
+    <string name="safetyNet_error">Cannot check SafetyNet, no Internet?</string>
+    <string name="safetyNet_fail">SafetyNet Failed: CTS profile mismatch</string>
+    <string name="safetyNet_pass">SafetyNet Passed</string>
+    <string name="root_info_warning">Functionality greatly limited</string>
+
+    <!--Install Fragment-->
+    <string name="auto_detect">(Auto) %1$s</string>
+    <string name="boot_image_title">Boot Image Location</string>
+    <string name="detect_button">Detect</string>
+    <string name="advanced_settings_title">Advanced Settings</string>
+    <string name="keep_force_encryption">Keep force encryption</string>
+    <string name="keep_dm_verity">Keep dm-verity</string>
+    <string name="current_magisk_title">Installed Magisk Version: v%1$s</string>
+    <string name="install_magisk_title">Latest Magisk Version: v%1$.1f</string>
+    <string name="uninstall">Uninstall</string>
+    <string name="reboot_countdown">Rebooting in %1$d</string>
+    <string name="uninstall_magisk_title">Uninstall Magisk</string>
+    <string name="uninstall_magisk_msg">This will remove all modules, MagiskSU, and potentially encrypt your data if not encrypted\nAre you sure to continue?</string>
+
+    <!--Module Fragment-->
+    <string name="no_info_provided">(No info provided)</string>
+    <string name="no_modules_found">No modules found</string>
+    <string name="update_file_created">Module will be updated at next reboot</string>
+    <string name="remove_file_created">Module will be removed at next reboot</string>
+    <string name="remove_file_deleted">Module will not be removed at next reboot</string>
+    <string name="disable_file_created">Module will be disabled at next reboot</string>
+    <string name="disable_file_removed">Module will be enabled at next reboot</string>
+    <string name="author">Created by %1$s</string>
+    <string name="fab_flash_zip">Flash Module Zip</string>
+
+    <!--Repo Fragment-->
+    <string name="update_available">Update Available</string>
+    <string name="installed">Installed</string>
+    <string name="not_installed">Not Installed</string>
+
+    <!--Log Fragment-->
+    <string name="menuSaveToSd">Save to SD</string>
+    <string name="menuReload">Reload</string>
+    <string name="menuClearLog">Clear log now</string>
+    <string name="logs_cleared">Log successfully cleared</string>
+    <string name="log_is_empty">Log is empty</string>
+    <string name="logs_save_failed">Could not write log to SD card:</string>
+
+    <!--About Activity-->
+    <string name="about">About</string>
+    <string name="app_developers">Main developers</string>
+    <string name="app_developers_"><![CDATA[App created by <a href="https://github.com/topjohnwu">topjohnwu</a> in collaboration with <a href="https://github.com/d8ahazard">Digitalhigh</a> and <a href="https://github.com/dvdandroid">Dvdandroid</a>.]]></string>
+    <string name="app_changelog">App\'s changelog</string>
+    <string name="translators" />
+    <string name="app_version">App\'s version</string>
+    <string name="app_source_code">Source code</string>
+    <string name="donation">Donation</string>
+    <string name="app_translators">App\'s translators</string>
+    <string name="support_thread">Support thread</string>
+
+    <!--Toasts, Dialogs-->
+    <string name="permissionNotGranted">This feature will not work without permission to write external storage.</string>
+    <string name="no_thanks">No thanks</string>
+    <string name="yes">Yes</string>
+    <string name="ok">OK</string>
+    <string name="close">Close</string>
+    <string name="repo_install_title">Install %1$s</string>
+    <string name="repo_install_msg">Do you want to install %1$s ?</string>
+    <string name="download_install">Download &amp; Install</string>
+    <string name="download">Download</string>
+    <string name="goto_install">Go to \"Install\" section</string>
+    <string name="download_file_error">Error downloading file</string>
+    <string name="install_error">Installation error!</string>
+    <string name="invalid_zip">The zip is not a Magisk Module!!</string>
+    <string name="reboot_title">Installation succeeded!</string>
+    <string name="reboot_msg">Do you want to reboot now?</string>
+    <string name="reboot">Reboot</string>
+    <string name="copying_msg">Copying zip to temp directory</string>
+    <string name="zip_install_progress_title">Installing</string>
+    <string name="zip_unzip_msg">Unzipping zip file …</string>
+    <string name="zip_process_msg">Processing zip file …</string>
+    <string name="zip_install_progress_msg">Installing %1$s …</string>
+    <string name="no_magisk_title">No Magisk Installed!</string>
+    <string name="no_magisk_msg">Do you want to download and install Magisk?</string>
+    <string name="downloading_toast">Downloading %1$s</string>
+    <string name="magisk_update_title">New Magisk Update Available!</string>
+    <string name="settings_reboot_toast">Reboot to apply settings</string>
+    <string name="release_notes">Release notes</string>
+    <string name="repo_cache_cleared">Repo cache cleared</string>
+    <string name="safetyNet_hide_notice">This app uses SafetyNet\nAlready handled by MagiskHide by default</string>
+    <string name="start_magiskhide">Starting MagiskHide …</string>
+    <string name="no_magisksu_title">Not using MagiskSU!</string>
+    <string name="no_magisksu_msg">You are not rooted with MagiskSU, using MagiskHide itself might not be enough!\nIt\'s not officially supported, and you would need additional tools (e.g suhide) to pass Safety Net.</string>
+    <string name="understand">I understand</string>
+    <string name="process_error">Process error</string>
+    <string name="internal_storage">The zip is stored in:\n[Internal Storage]%1$s</string>
+    <string name="zip_process_title">Processing</string>
+
+    <!--Settings Activity -->
+    <string name="settings_general_category">General</string>
+    <string name="settings_dark_theme_title">Dark Theme</string>
+    <string name="settings_dark_theme_summary">Enable dark theme</string>
+    <string name="settings_clear_cache_title">Clear Repo Cache</string>
+    <string name="settings_clear_cache_summary">Clear the cached information for online repos, forces the app to refresh online</string>
+
+    <string name="settings_disable_title">Disable Magisk</string>
+    <string name="settings_disable_summary">Everything will be disabled except root (MagiskSU)</string>
+    <string name="settings_magiskhide_summary">Hide Magisk from various detections</string>
+    <string name="settings_busybox_title">Enable BusyBox</string>
+    <string name="settings_busybox_summary">Bind mount Magisk\'s built-in busybox to xbin</string>
+    <string name="settings_hosts_title">Systemless hosts</string>
+    <string name="settings_hosts_summary">Systemless hosts support for Adblock apps</string>
+
+    <string name="settings_su_app_adb">Apps and ADB</string>
+    <string name="settings_su_app">Apps only</string>
+    <string name="settings_su_adb">ADB only</string>
+    <string name="settings_su_disable">Disabled</string>
+    <string name="settings_su_request_10">10 seconds</string>
+    <string name="settings_su_request_20">20 seconds</string>
+    <string name="settings_su_request_30">30 seconds</string>
+    <string name="settings_su_request_60">60 seconds</string>
+    <string name="superuser_access">Superuser Access</string>
+    <string name="auto_response">Automatic Response</string>
+    <string name="request_timeout">Request Timeout</string>
+    <string name="superuser_notification">Superuser Notification</string>
+    <string name="request_timeout_summary">%1$s seconds</string>
+
+    <string name="settings_development_category">App Development</string>
+    <string name="settings_developer_logging_title">Enable advanced debug logging</string>
+    <string name="settings_developer_logging_summary">Check this to enable verbose logging</string>
+    <string name="settings_shell_logging_title">Enable shell command debug logging</string>
+    <string name="settings_shell_logging_summary">Check this to enable logging all shell commands and its output</string>
+
+    <!--Superuser-->
+    <string name="su_request_title">Superuser Request</string>
+    <string name="deny_with_str">Deny%1$s</string>
+    <string name="deny">Deny</string>
+    <string name="prompt">Prompt</string>
+    <string name="grant">Grant</string>
+    <string name="su_warning">Grants full access to your device.\nDeny if you\'re not sure!</string>
+    <string name="forever">Forever</string>
+    <string name="once">Once</string>
+    <string name="tenmin">10 min</string>
+    <string name="twentymin">20 min</string>
+    <string name="thirtymin">30 min</string>
+    <string name="sixtymin">60 min</string>
+    <string name="su_allow_toast">%1$s is granted Superuser rights</string>
+    <string name="su_deny_toast">%1$s is denied Superuser rights</string>
+    <string name="no_apps_found">No apps found</string>
+    <string name="su_snack_grant">Superuser rights of %1$s is granted</string>
+    <string name="su_snack_deny">Superuser rights of %1$s is denied</string>
+    <string name="su_snack_notif_on">Notifications of %1$s is enabled</string>
+    <string name="su_snack_notif_off">Notifications of %1$s is disabled</string>
+    <string name="su_snack_log_on">Logging of %1$s is enabled</string>
+    <string name="su_snack_log_off">Logging of %1$s is disabled</string>
+    <string name="su_snack_revoke">%1$s rights are revoked</string>
+    <string name="su_revoke_title">Revoke?</string>
+    <string name="su_revoke_msg">Confirm to revoke %1$s rights?</string>
+    <string name="toast">Toast</string>
+    <string name="none">None</string>
+
+    <!--Superuser logs-->
+    <string name="pid">PID:\u0020</string>
+    <string name="target_uid">Target UID:\u0020</string>
+    <string name="command">Command:\u0020</string>
+
+</resources>

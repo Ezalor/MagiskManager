@@ -1,0 +1,98 @@
+<resources>
+    <!--Universal-->
+
+    <!--Welcome Activity-->
+    <string name="navigation_drawer_open">Open navigatie</string>
+    <string name="navigation_drawer_close">Sluit navigatie</string>
+    <string name="modules">Modules</string>
+    <string name="downloads">Downloads</string>
+    <string name="log">Log</string>
+    <string name="settings">Instellingen</string>
+
+    <!--Magisk Fragment-->
+    <string name="magisk_version">Geïnstalleerde Magisk: v%1$s</string>
+    <string name="magisk_version_error">Heb jij Magisk wel geïnstalleerd?</string>
+
+    <string name="magisk_update_available">Magisk v%1$.1f update!</string>
+    <string name="cannot_check_updates">Kan niet controleren op updates.</string>
+    <string name="up_to_date">Nieuwste versie van %1$s geïnstalleerd</string>
+
+    <!--Root Fragment-->
+
+    <!--Module Fragment-->
+    <string name="no_info_provided">(Geen informatie gegeven)</string>
+    <string name="no_modules_found">Geen modules gevonden</string>
+    <string name="update_file_created">Module wordt geüpdatet bij de volgende reboot.</string>
+    <string name="remove_file_created">Module wordt verwijderd bij de volgende reboot.</string>
+    <string name="remove_file_deleted">Module wordt niet verwijderd bij de volgende reboot.</string>
+    <string name="disable_file_created">Module wordt uitgeschakeld bij de volgende reboot.</string>
+    <string name="disable_file_removed">Module wordt ingeschakeld bij de volgende reboot.</string>
+    <string name="author">Gemaakt door: %1$s</string>
+
+    <!--Repo Fragment-->
+    <string name="update_available">Update Beschikbaar</string>
+    <string name="installed">Geïnstalleerd</string>
+    <string name="not_installed">Niet geïnstalleerd</string>
+
+    <!--Log Fragment-->
+    <string name="menuSaveToSd">Opslaan op SD-kaart</string>
+    <string name="menuReload">Herladen</string>
+    <string name="menuClearLog">Maak log leeg</string>
+    <string name="logs_cleared">Log succesvol geleegd</string>
+    <string name="log_is_empty">Log is leeg</string>
+    <string name="logs_save_failed">Kon niet naar SD-kaart schrijven:</string>
+
+    <!--About Activity-->
+    <string name="about">Over</string>
+    <string name="app_developers">Hoofddevelopers</string>
+    <string name="app_developers_"><![CDATA[App gemaakt door <a href="https://github.com/topjohnwu">topjohnwu</a> in samenwerking met <a href="https://github.com/d8ahazard">Digitalhigh</a> en <a href="https://github.com/dvdandroid">Dvdandroid</a>.]]></string>
+    <string name="app_changelog">App\'s changelog</string>
+    <string name="translators">NaamloosDT, Klaessen</string>
+    <string name="app_version">App\'s versie</string>
+    <string name="app_source_code">Source code</string>
+    <string name="donation">Donatie</string>
+    <string name="app_translators">App\'s vertalers</string>
+    <string name="support_thread">Support thread</string>
+
+    <!--Toasts, Dialogs-->
+    <string name="permissionNotGranted">Deze feature zal niet werken zonder permissie om op de externe opslag te schrijven.</string>
+    <string name="no_thanks">Nee bedankt</string>
+    <string name="repo_install_title">Installeer %1$s</string>
+    <string name="repo_install_msg">Wilt u  %1$s installeren?</string>
+    <string name="download_install">Downloaden en installeren</string>
+    <string name="download_file_error">Er is een fout opgetreden bij het downloaden van het bestand</string>
+    <string name="install_error">Er is een fout opgetreden in de installatie</string>
+    <string name="invalid_zip">Zip bestand is geen Magisk Module!</string>
+    <string name="reboot_title">Installatie succesvol!</string>
+    <string name="reboot_msg">Wilt u nu rebooten?</string>
+    <string name="reboot">Reboot</string>
+    <string name="zip_install_progress_title">Installeren</string>
+    <string name="zip_install_progress_msg">Instalatievoortgang: %1$s …</string>
+    <string name="no_magisk_title">Geen Magisk geïnstalleerd!</string>
+    <string name="no_magisk_msg">Wilt u Magisk downloaden en installeren?</string>
+
+    <!--URL Templates-->
+
+    <!--Settings Fragment -->
+    <string name="settings_general_category">Algemeen</string>
+    <string name="settings_dark_theme_title">Thema</string>
+    <string name="settings_dark_theme_summary">Selecteer een thema</string>
+
+    <string name="settings_busybox_title">Schakel BusyBox in</string>
+
+    <string name="settings_development_category">Development</string>
+    <string name="settings_developer_logging_title">Geavanceerde debug logging</string>
+    <string name="settings_developer_logging_summary">Schakel dit in voor uitgebreidere logging.</string>
+    <string name="settings_shell_logging_title">Shell command debug loggin</string>
+    <string name="settings_shell_logging_summary">Schakel dit in om alle shell commands en output te loggen</string>
+    <string name="settings_magiskhide_summary">Reboot om de instellingen toe te passen</string>
+
+    <!-- Strings related to Settings -->
+
+    <!-- Example General settings -->
+
+    <!-- Example settings for Data & Sync -->
+
+    <!-- Example settings for Notifications -->
+
+</resources>
